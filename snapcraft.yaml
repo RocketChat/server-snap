@@ -55,10 +55,12 @@ parts:
             - usr
             - lib
     mongodb:
-        source: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1604-3.2.7.tgz
+        source: https://cdn-download.rocket.chat/build/mongodb-linux-$SNAP_ARCH.tgz
         plugin: dump
         stage-packages:
             - libssl1.0.0
+        organize:
+            mongodb/bin: bin
         stage:
             - usr
             - bin
