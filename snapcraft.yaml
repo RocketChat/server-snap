@@ -55,12 +55,11 @@ parts:
             - usr
             - lib
     mongodb:
-        source: https://cdn-download.rocket.chat/build/mongodb-linux-<%= ENV['SNAP_ARCH'] %>.tgz
-        plugin: dump
+        plugin: nil
         stage-packages:
+            - mongodb-server
+            - mongodb-clients
             - libssl1.0.0
-        organize:
-            mongodb/bin: bin
         stage:
             - usr
             - bin
