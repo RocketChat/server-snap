@@ -21,6 +21,7 @@ apps:
         daemon: simple
         plugs: [network, network-bind]
 parts:
+env:
     node:
         plugin: nodejs
         node-engine: 4.7.0
@@ -55,7 +56,7 @@ parts:
             - usr
             - lib
     mongodb:
-        source: https://cdn-download.rocket.chat/build/mongodb-linux-${SNAP_ARCH}.tgz
+        source: https://cdn-download.rocket.chat/build/mongodb-linux-$SNAP_ARCH.tgz
         plugin: dump
         stage-packages:
             - libssl1.0.0
