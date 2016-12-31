@@ -21,41 +21,41 @@ apps:
         daemon: simple
         plugs: [network, network-bind]
 parts:
-    rocketchat-server:
-        plugin: nodejs 
-        after: [mongodb]
+    node:
+        plugin: nodejs
         node-engine: 4.7.0
-        source: https://rocket.chat/releases/latest/download
-        source-type: tar
-        organize:
-          bundle/main.js : main.js
-          bundle/programs/ : programs/
-        stage-packages:
-            - graphicsmagick
+        source: .
+        after: [mongodb]
+        node-packages:
+            - promise
+            - meteor-promise
+            - fibers
+            - underscore
+            - source-map-support
+            - semver
         build-packages:
             - python
             - build-essential
-        stage:
-            - programs
-            - main.js
-            - usr
-            - lib
-        snap:
-            - programs
-            - main.js
-            - usr
-            - lib
+        organize:
+            lib/node_modules: node_modules
     mongodb:
-        plugin: nil
+        plugin: dump
+        source: https://rocket.chat/releases/latest/download
+        source-type: tar
         stage-packages:
+            - graphicsmagick
             - mongodb-server
             - mongodb-clients
             - libssl1.0.0
         stage:
+            - programs
+            - main.js
             - usr
             - etc
             - lib
         snap:
+            - programs
+            - main.js
             - usr
             - etc
             - lib
