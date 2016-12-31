@@ -34,8 +34,6 @@ parts:
             # For fibers
             - python
             - build-essential
-        organize:
-            lib/node_modules: node_modules
     rocketchat-server:
         plugin: dump
         after: [mongodb]
