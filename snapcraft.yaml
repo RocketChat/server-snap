@@ -22,12 +22,10 @@ apps:
         plugs: [network, network-bind]
 parts:
     node:
-        plugin: nodejs
-        node-engine: 4.7.0
-        source: .
+        plugin: x-nodejs
+        node-engine: 4.6.2
         after: [mongodb]
         node-packages:
-            # fix strange launchpad-only bug (when exiting bcrypt node-gyp builds) that picks up chimp and PhantoJS
             - minimatch
             - bcrypt
             - promise
@@ -39,6 +37,10 @@ parts:
         build-packages:
             - python
             - build-essential
+        stage:
+            - lib/node_modules
+        snap:
+            - lib/node_modules
     mongodb:
         plugin: dump
         source: https://rocket.chat/releases/latest/download
