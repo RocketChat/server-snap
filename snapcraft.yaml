@@ -55,7 +55,7 @@ parts:
             - usr
             - lib
     mongodb:
-        source: env https://cdn-download.rocket.chat/build/mongodb-linux-$SNAP_ARCH.tgz
+        source: ttps://cdn-download.rocket.chat/build/mongodb-linux-<%= ENV['SNAP_ARCH'] %>.tgz
         plugin: dump
         stage-packages:
             - libssl1.0.0
