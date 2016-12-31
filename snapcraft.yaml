@@ -22,12 +22,10 @@ apps:
         plugs: [network, network-bind]
 parts:
     node:
-        plugin: x-nodejs
-        node-engine: 4.6.2
+        plugin: nodejs
+        node-engine: 4.7.0
         after: [mongodb]
         node-packages:
-            - minimatch
-            - bcrypt
             - promise
             - meteor-promise
             - fibers
@@ -37,10 +35,8 @@ parts:
         build-packages:
             - python
             - build-essential
-        stage:
-            - lib/node_modules
-        snap:
-            - lib/node_modules
+        organize:
+            lib/node_modules: node_modules
     mongodb:
         plugin: dump
         source: https://rocket.chat/releases/latest/download
