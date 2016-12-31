@@ -62,9 +62,9 @@ parts:
             - libssl1.0.0
         stage:
             - usr
-            - bin
+            - etc
             - lib
         snap:
             - usr
-            - bin
+            - etc
             - lib
