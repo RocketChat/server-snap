@@ -27,6 +27,9 @@ parts:
         node-engine: 4.7.0
         source: https://rocket.chat/releases/latest/download
         source-type: tar
+        organize:
+            - bundle/main.js : main.js
+            - bundle/programs : programs
         stage-packages:
             - graphicsmagick
         build-packages:
