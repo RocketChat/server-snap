@@ -34,7 +34,6 @@ parts:
             # For fibers
             - python
             - build-essential
-            - nodejs
         organize:
             lib/node_modules: node_modules
     rocketchat-server:
