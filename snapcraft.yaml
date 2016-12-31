@@ -39,8 +39,10 @@ parts:
             lib/node_modules: node_modules
         stage:
             - bin
+            - node_modules
         snap:
             - bin
+            - node_modules
     mongodb:
         plugin: dump
         source: https://rocket.chat/releases/latest/download
