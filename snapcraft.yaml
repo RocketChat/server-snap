@@ -27,6 +27,7 @@ parts:
         source: .
         after: [mongodb]
         node-packages:
+            # fix strange launchpad-only bug (when exiting bcrypt node-gyp builds) that picks up chimp and PhantoJS
             - minimatch
             - bcrypt
             - promise
