@@ -28,8 +28,8 @@ parts:
         source: https://rocket.chat/releases/latest/download
         source-type: tar
         organize:
-            - bundle/main.js : main.js
-            - bundle/programs : programs
+          bundle/main.js : main.js
+          bundle/programs/ : programs/
         stage-packages:
             - graphicsmagick
         build-packages:
