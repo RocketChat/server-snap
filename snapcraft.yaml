@@ -27,6 +27,7 @@ parts:
         source: .
         after: [mongodb]
         node-packages:
+            - bcrypt
             - promise
             - meteor-promise
             - fibers
