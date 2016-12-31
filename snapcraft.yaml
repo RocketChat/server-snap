@@ -21,26 +21,17 @@ apps:
         daemon: simple
         plugs: [network, network-bind]
 parts:
-    node:
-        plugin: nodejs
-        node-engine: 4.7.0
-        node-packages:
-            - promise
-            - fibers
-            - underscore
-            - source-map-support
-            - semver
-        build-packages:
-            # For fibers
-            - python
-            - build-essential
     rocketchat-server:
-        plugin: dump
+        plugin: nodejs 
         after: [mongodb]
+        node-engine: 4.7.0
         source: https://rocket.chat/releases/latest/download
         source-type: tar
         stage-packages:
             - graphicsmagick
+        build-packages:
+            - python
+            - build-essential
         stage:
             - programs
             - main.js
