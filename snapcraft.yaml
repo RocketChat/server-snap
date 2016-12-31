@@ -37,6 +37,10 @@ parts:
             - build-essential
         organize:
             lib/node_modules: node_modules
+        stage:
+            - bin
+        snap:
+            - bin
     mongodb:
         plugin: dump
         source: https://rocket.chat/releases/latest/download
