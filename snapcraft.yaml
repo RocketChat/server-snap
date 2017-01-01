@@ -52,6 +52,7 @@ parts:
         stage-packages:
             - graphicsmagick
             - mongodb-server
+            - libtcmalloc-minimal4
             - mongodb-clients
             - libssl1.0.0
         stage:
