@@ -26,6 +26,8 @@ parts:
         node-engine: 4.7.0
         after: [mongodb]
         node-packages:
+            - minimax
+            - bcrypt
             - promise
             - meteor-promise
             - fibers
