@@ -69,3 +69,10 @@ parts:
             - usr
             - etc
             - lib
+    scripts:
+        plugin: dump
+        source: bin/
+        organize:
+            rcbackup: bin/rcbackup
+        snap:
+            - bin
