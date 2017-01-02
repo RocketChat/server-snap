@@ -1,4 +1,5 @@
 #!/bin/sh
-mongodump -d party -o $SNAP_DATA
+mkdir $SNAP_DATA/dump
+mongodump -d party -o $SNAP_DATA/dump
 tar zcvf $SNAP_DATA/backup.tgz  $SNAP_DATA/dump
-mv  $SNAP_DATA/backup.tgz $1
+echo $SNAP_DATA/backup.tgz
