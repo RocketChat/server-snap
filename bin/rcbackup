@@ -4,4 +4,4 @@ rm $SNAP_DATA/backup.tgz
 mkdir $SNAP_DATA/dump
 mongodump -d parties -o $SNAP_DATA/dump
 tar zcvf $SNAP_DATA/backup.tgz  $SNAP_DATA/dump
-mv $SNAP_DATA/backup.tgz ~
+echo "A backup of your data can be found at $SNAP_DATA/backup.tgz"
