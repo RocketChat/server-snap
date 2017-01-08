@@ -17,7 +17,7 @@ apps:
         daemon: simple
         plugs: [network, network-bind]
     rocketchat-mongo:
-        command: env LC_ALL=C mongod --bind_ip 127.0.0.1 --smallfiles --dbpath=$SNAP_COMMON  --journal --replSet rcreplset
+        command: env LC_ALL=C startmongo
         daemon: simple
         plugs: [network, network-bind]
     rocketchat-caddy:

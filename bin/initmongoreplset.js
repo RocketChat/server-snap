@@ -1,3 +1,5 @@
-var cfg = { _id: 'rcreplset' };
-var msg  = rs.initiate(cfg);
-printjson(msg);
+
+if (!db.isMaster()) {
+    var msg  = rs.initiate(cfg);
+    printjson(msg);
+}
