@@ -81,6 +81,7 @@ parts:
         source: bin/
         organize:
             rcbackup: bin/rcbackup
+            startmongo: bin/startmongo
             Caddyfile: bin/Caddyfile
             initcaddy: bin/initcaddy
             initmongoreplset.js: bin/initmongoreplset.js
