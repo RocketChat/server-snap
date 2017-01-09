@@ -1,5 +1,5 @@
-
-if (!db.isMaster()) {
-    var msg  = rs.initiate(cfg);
+var ism = db.isMaster();
+if (! (ism.ismaster)) {
+    var msg  = rs.initiate();
     printjson(msg);
 }
