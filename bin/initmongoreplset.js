@@ -1,5 +1,8 @@
 var ism = db.isMaster();
-if (! (ism.ismaster)) {
+printjson(ism);
+if (ism.ismaster) {
+   } else 
+{
     var msg  = rs.initiate();
     printjson(msg);
 }
