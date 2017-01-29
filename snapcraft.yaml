@@ -21,14 +21,17 @@ apps:
         daemon: simple
         plugs: [network, network-bind]
     rocketchat-caddy:
-        command: env LC_ALL=C caddy -conf=$SNAP_DATA/Caddyfile -host=localhost:8080 
+        command: env LC_ALL=C caddy -conf=$SNAP_DATA/Caddyfile -host=localhost:8080
         daemon: simple
         plugs: [network, network-bind]
     backupdb:
-        command: env LC_ALL=c rcbackup
+        command: env LC_ALL=C rcbackup
+        plugs: [network]
+    restoredb:
+        command: env LC_ALL=C rcrestore
         plugs: [network]
     initcaddy:
-        command: env LC_ALL=c initcaddy
+        command: env LC_ALL=C initcaddy
 parts:
     node:
         plugin: nodejs
@@ -51,7 +54,7 @@ parts:
         stage:
             - bin
             - node_modules
-        snap:
+        prime:
             - bin
             - node_modules
     mongodb:
@@ -70,7 +73,7 @@ parts:
             - usr
             - etc
             - lib
-        snap:
+        prime:
             - programs
             - main.js
             - usr
@@ -81,12 +84,13 @@ parts:
         source: bin/
         organize:
             rcbackup: bin/rcbackup
+            rcrestore: bin/rcrestore
             startmongo: bin/startmongo
             initmongo: bin/initmongo
             Caddyfile: bin/Caddyfile
             initcaddy: bin/initcaddy
             initmongoreplset.js: bin/initmongoreplset.js
-        snap:
+        prime:
             - bin
     caddy:
         plugin: go
@@ -94,5 +98,5 @@ parts:
         source: https://github.com/mholt/caddy
         source-type: git
         source-commit: 53e117802fedd5915eeb32907873d8786a4b2936
-        snap:
+        prime:
             - bin/caddy
