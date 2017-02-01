@@ -54,7 +54,7 @@ parts:
         stage:
             - bin
             - node_modules
-        prime:
+        snap:
             - bin
             - node_modules
     mongodb:
@@ -73,7 +73,7 @@ parts:
             - usr
             - etc
             - lib
-        prime:
+        snap:
             - programs
             - main.js
             - usr
@@ -90,7 +90,7 @@ parts:
             Caddyfile: bin/Caddyfile
             initcaddy: bin/initcaddy
             initmongoreplset.js: bin/initmongoreplset.js
-        prime:
+        snap:
             - bin
     caddy:
         plugin: go
@@ -98,5 +98,5 @@ parts:
         source: https://github.com/mholt/caddy
         source-type: git
         source-commit: 53e117802fedd5915eeb32907873d8786a4b2936
-        prime:
+        snap:
             - bin/caddy
