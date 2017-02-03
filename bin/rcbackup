@@ -1,7 +1,9 @@
 #!/bin/sh
-rm -rf $SNAP_DATA/dump
-rm $SNAP_DATA/backup.tgz
-mkdir $SNAP_DATA/dump
-mongodump -d parties -o $SNAP_DATA/dump
-tar zcvf $SNAP_DATA/backup.tgz  $SNAP_DATA/dump
-echo "A backup of your data can be found at $SNAP_DATA/backup.tgz"
+backup_date=$(date +%s)
+backup_dir="$SNAP_USER_COMMON/backups/$backup_date"
+backup_file="$SNAP_USER_COMMON/backups/rocketchat_backup_$backup_date.tgz"
+
+mkdir -p $backup_dir
+mongodump -d parties -o $backup_dir > "$backup_dir/mongodump.log"
+tar zcf $backup_file $backup_dir
+echo "A backup of your data can be found at $backup_file."

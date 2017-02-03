@@ -1,0 +1,58 @@
+#! /bin/bash
+
+if [[ ! -f $1 ]]
+then
+    echo "Usage: snap run rocketchat-server.rcrestore $SNAP_USER_COMMON/backup_file.tgz"
+    exit
+fi
+
+cd ${1%/*}
+if [[ -z $(pwd | grep "$SNAP_USER_COMMON") ]]
+then
+    echo "Error: backup file must be within $SNAP_USER_COMMON."
+    exit
+fi
+
+function ask_backup {
+    echo -n "\
+*** ATTENTION ***
+* Your current database WILL BE DROPPED prior to the restore!
+* Would you like to make a backup of the current database before proceeding?
+* (y/n/Q)> "
+
+    read choice
+    [[ "${choice,,}" = n* ]] && return
+    [[ "${choice,,}" = y* ]] && rcbackup && return
+    exit
+}
+
+function error_check {
+    if [[ -n $(cat "$restore_dir/$1" | egrep "([Ee]rror|[Cc]annot|[Aa]bort|[Dd]enied)") ]]
+    then
+        echo "Restore aborted!"
+        echo "Check $restore_dir/$1 for details."
+        exit
+    fi
+}
+
+mongo parties --eval "db.getCollectionNames()" | grep "\[ \]" >> /dev/null || ask_backup
+
+echo "Extracting backup file..."
+restore_dir="$SNAP_USER_COMMON/restores"
+mkdir -p $restore_dir && cd $restore_dir
+log_name="extraction.log"
+tar zxvf $1 &> "$restore_dir/$log_name"
+error_check $log_name
+
+echo "Cleaning database..."
+log_name="db_drop.log"
+mongo parties --eval "db.dropDatabase()" &> "$restore_dir/$log_name"
+error_check $log_name
+
+echo "Restoring data..."
+data_dir=$(ls -R $restore_dir | grep parties:)
+log_name="mongorestore.log"
+mongorestore --db parties ${data_dir/://} &> "$restore_dir/$log_name"
+error_check $log_name
+
+echo "Restore completed! Please restart the snap.rocketchat services to verify."
