@@ -15,7 +15,7 @@ Currently, this repository is mirrored on launchpad, and used to build latest AR
 You can download recent builds here:
 https://code.launchpad.net/~sing-li/+snap/rocketchat-server
 
-Due an issue with the existing installed base of amd64 users (existing snap always installed mongodb 3.2), this snap is not currently used for amd64 builds.
+Due an issue with the existing installed base of amd64 users (existing snap always installed mongodb 3.2  [#issue](https://github.com/RocketChat/rocketchat-server-snap/issues/3)), this snap is not currently used for amd64 builds.
 
 ### Test installation 
 
