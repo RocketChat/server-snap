@@ -57,10 +57,19 @@ echo "[*] Restoring data..."
 data_dir=$(tail -n 1 /var/snap/rocketchat-server/common/restore/extraction.log)
 data_dir=$(dirname ${data_dir})
 log_name="mongorestore.log"
-mongorestore --db parties --drop ${data_dir} &> "${restore_dir}/${log_name}"
+mongorestore --db parties --noIndexRestore --drop ${data_dir} &> "${restore_dir}/${log_name}"
 if [[ $? != 0 ]]
 then
     abort "Failed to execute mongorestore from ${data_dir}!"
+    exit
+fi
+
+echo "[*] Preparing database..."
+log_name="mongoprepare.log"
+mongo parties --eval "db.repairDatabase()" --verbose &> "${restore_dir}/${log_name}"
+if [[ $? != 0 ]]
+then
+    abort "Failed to prepare database for usage!"
     exit
 fi
 
