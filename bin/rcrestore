@@ -54,13 +54,13 @@ then
 fi
 
 echo "[*] Restoring data..."
-data_dir=$(ls -R ${restore_dir} | grep parties:)
-data_dir=${data_dir/://}
+data_dir=$(tail -n 1 /var/snap/rocketchat-server/common/restore/extraction.log)
+data_dir=$(dirname ${data_dir})
 log_name="mongorestore.log"
 mongorestore --db parties --drop ${data_dir} &> "${restore_dir}/${log_name}"
 if [[ $? != 0 ]]
 then
-    abort "Failed to restore ${data_dir} using mongorestore!"
+    abort "Failed to execute mongorestore from ${data_dir}!"
     exit
 fi
 
