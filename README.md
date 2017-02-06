@@ -5,7 +5,8 @@
 Features:
 * bundles ubuntu distribution specific and RC compatible mongodb version
 * oplog tailing for mongo by default
-* mongodb backup command  (Pull Request wanted for restore! )
+* mongodb backup command  
+* mongodb restore command
 * caddy reverse proxy built-in - capable of handling free lestencrypt ssl
 
 Note:
