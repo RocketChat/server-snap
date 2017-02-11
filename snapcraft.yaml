@@ -70,12 +70,14 @@ parts:
         stage:
             - programs
             - main.js
+            - .node_version.txt
             - usr
             - etc
             - lib
         snap:
             - programs
             - main.js
+            - .node_version.txt
             - usr
             - etc
             - lib
