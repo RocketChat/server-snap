@@ -1,4 +1,10 @@
 #! /bin/bash
 
-sleep 5
+rcstop="$SNAP_COMMON/rcstop"
+if [[ -f ${rcstop} ]]
+then
+    rm ${rcstop}
+else
+    sleep 5
+fi
 

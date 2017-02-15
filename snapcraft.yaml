@@ -18,6 +18,7 @@ apps:
     rocketchat-server:
         command: env BABEL_CACHE_DIR=/tmp ROOT_URL=http://localhost PORT=3000 MONGO_URL=mongodb://localhost:27017/parties Accounts_AvatarStorePath=$SNAP_COMMON/uploads MONGO_OPLOG_URL=mongodb://localhost:27017/local?replicaSet=rcreplset node $SNAP/main.js
         daemon: simple
+        stop-command: bin/stoprc
         post-stop-command: bin/post-stop
         plugs: [network, network-bind]
     rocketchat-mongo:
@@ -102,15 +103,16 @@ parts:
         plugin: dump
         source: bin/
         organize:
-            stagemongo: bin/stagemongo.sh
+            Caddyfile: bin/Caddyfile
+            initcaddy: bin/initcaddy
+            initmongo: bin/initmongo
+            initmongoreplset.js: bin/initmongoreplset.js
             post-stop: bin/post-stop
             rcbackup: bin/rcbackup
             rcrestore: bin/rcrestore
+            stagemongo: bin/stagemongo.sh
             startmongo: bin/startmongo
-            initmongo: bin/initmongo
-            Caddyfile: bin/Caddyfile
-            initcaddy: bin/initcaddy
-            initmongoreplset.js: bin/initmongoreplset.js
+            stoprc: bin/stoprc
         snap:
             - bin
 

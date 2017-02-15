@@ -1,0 +1,9 @@
+#! /bin/bash
+
+pid=$(pgrep node)
+if [[ -n ${pid} ]]
+then
+    kill -TERM ${pid}
+    touch "$SNAP_COMMON/rcstop"
+fi
+
