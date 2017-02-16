@@ -85,6 +85,8 @@ parts:
             - lib
 
     mongodb:
+        build-packages:
+            - wget
         prepare: ./stagemongo.sh
         plugin: dump
         source: ./
