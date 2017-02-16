@@ -2,9 +2,6 @@
 
 # TODO move this to /bin if possible
 
-# TODO try this out
-# [[ -n $(which wget) ]] || apt-get -y wget
-
 if [[ $(uname -m) == "x86_64" ]]
 then
     wget "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1604-3.2.7.tgz"
