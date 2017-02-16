@@ -1,10 +1,10 @@
 #! /bin/bash
 
 rcstop="$SNAP_COMMON/rcstop"
-if [[ -f ${rcstop} ]]
+if [[ -f $rcstop ]]
 then
-    rm ${rcstop}
+    rm $rcstop
+    echo "$rcstop removed!"
 else
     sleep 5
 fi
-
