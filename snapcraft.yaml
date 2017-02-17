@@ -16,23 +16,23 @@ confinement: strict
 
 apps:
     backupdb:
-        command: env LC_ALL=C backupdb
+        command: env LC_ALL=C backupdb.sh
         plugs: [network]
     initcaddy:
-        command: env LC_ALL=C initcaddy
+        command: env LC_ALL=C initcaddy.sh
     restoredb:
-        command: env LC_ALL=C restoredb
+        command: env LC_ALL=C restoredb.sh
         plugs: [network]
     rocketchat-caddy:
         command: env LC_ALL=C caddy -conf=$SNAP_DATA/Caddyfile -host=localhost:8080
         daemon: simple
         plugs: [network, network-bind]
     rocketchat-mongo:
-        command: env LC_ALL=C startmongo
+        command: env LC_ALL=C startmongo.sh
         daemon: simple
         plugs: [network, network-bind]
     rocketchat-server:
-        command: env LC_ALL=C startrc
+        command: env LC_ALL=C startrc.sh
         daemon: simple
         plugs: [network, network-bind]
 
@@ -104,14 +104,14 @@ parts:
         source: bin/
         organize:
             Caddyfile: bin/Caddyfile
-            backupdb: bin/backupdb.sh
-            initcaddy: bin/initcaddy.sh
-            initmongo: bin/initmongo.sh
+            backupdb.sh: bin/backupdb.sh
+            initcaddy.sh: bin/initcaddy.sh
+            initmongo.sh: bin/initmongo.sh
             initmongoreplset.js: bin/initmongoreplset.js
-            preparemongo: bin/preparemongo.sh
-            restoredb: bin/restoredb.sh
-            startmongo: bin/startmongo.sh
-            startrc: bin/startrc.sh
+            preparemongo.sh: bin/preparemongo.sh
+            restoredb.sh: bin/restoredb.sh
+            startmongo.sh: bin/startmongo.sh
+            startrc.sh: bin/startrc.sh
         snap:
             - bin
 
