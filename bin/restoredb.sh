@@ -74,3 +74,4 @@ then
 fi
 
 echo "[+] Restore completed! Please restart the snap.rocketchat services to verify."
+

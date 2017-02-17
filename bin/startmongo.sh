@@ -1,4 +1,5 @@
-#!/bin/sh
+#! /bin/bash
+
 echo "initializing replset backgrounded..."
 $SNAP/bin/initmongo  &
 

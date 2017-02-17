@@ -1,6 +1,6 @@
 #! /bin/bash
 
-# TODO move this to /bin if possible
+cd ../
 
 if [[ $(uname -m) == "x86_64" ]]
 then
