@@ -54,7 +54,7 @@ then
 fi
 
 echo "[*] Restoring data..."
-data_dir=$(tail -n 1 "${restore_dir}/${log_name}" | grep parties/. | head -n 1)
+data_dir=$(tail "${restore_dir}/${log_name}" | grep parties/. | head -n 1)
 data_dir=$(dirname ${data_dir})
 log_name="mongorestore.log"
 mongorestore --db parties --noIndexRestore --drop ${data_dir} &> "${restore_dir}/${log_name}"
