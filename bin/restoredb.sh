@@ -6,13 +6,14 @@ then
     exit
 fi
 
-if [[ ! -f ${1} ]]
+backup_file=${1}
+if [[ ! -f ${backup_file} ]]
 then
     echo "[-] Usage: snap run rocketchat-server.rcrestore ${SNAP_COMMON}/backup_file.tgz"
     exit
 fi
 
-cd ${1%/*}
+cd ${backup_file%/*}
 if [[ -z $(pwd | grep "${SNAP_COMMON}") ]]
 then
     echo "[-] Backup file must be within ${SNAP_COMMON}."
@@ -28,8 +29,13 @@ function ask_backup {
 
     read choice
     [[ "${choice,,}" = n* ]] && return
-    [[ "${choice,,}" = y* ]] && rcbackup && return
+    [[ "${choice,,}" = y* ]] && backupdb.sh && return
     exit
+}
+
+function warn {
+        echo "[!] ${1}"
+        echo "[*] Check ${restore_dir}/${log_name} for details."
 }
 
 function abort {
@@ -46,31 +52,31 @@ restore_dir="${SNAP_COMMON}/restore"
 log_name="extraction.log"
 mkdir -p ${restore_dir}
 cd ${restore_dir}
-tar --no-same-owner --overwrite -zxvf ${1} &> "${restore_dir}/${log_name}"
-if [[ $? != 0 ]]
-then
-    abort "Failed to extract backup files to ${restore_dir}!"
-    exit
-fi
+tar --no-same-owner --overwrite -zxvf ${backup_file} &> "${restore_dir}/${log_name}"
+
+[[ $? != 0 ]] && abort "Failed to extract backup files to ${restore_dir}!"
 
 echo "[*] Restoring data..."
-data_dir=$(tail -n 1 /var/snap/rocketchat-server/common/restore/extraction.log)
+data_dir=$(tail "${restore_dir}/${log_name}" | grep parties/. | head -n 1)
+
+[[ -z ${data_dir} ]] && abort "Restore data not found within ${backup_file}!
+    Please check that your backup file contains the backup data within the \"parties\" directory."
+
 data_dir=$(dirname ${data_dir})
 log_name="mongorestore.log"
 mongorestore --db parties --noIndexRestore --drop ${data_dir} &> "${restore_dir}/${log_name}"
-if [[ $? != 0 ]]
-then
-    abort "Failed to execute mongorestore from ${data_dir}!"
-    exit
-fi
+
+[[ $? != 0 ]] && abort "Failed to execute mongorestore from ${data_dir}!"
+
+# If mongorestore.log only has a few lines, it likely didn't find the dump files
+log_lines=$(wc -l < "${restore_dir}/${log_name}")
+[[ ${log_lines} -lt 24 ]] && warn "Little or no restore data found within ${backup_file}!
+    Please check that your backup file contains all the backup data within the \"parties\" directory."
 
 echo "[*] Preparing database..."
 log_name="mongoprepare.log"
 mongo parties --eval "db.repairDatabase()" --verbose &> "${restore_dir}/${log_name}"
-if [[ $? != 0 ]]
-then
-    abort "Failed to prepare database for usage!"
-    exit
-fi
+
+[[ $? != 0 ]] && abort "Failed to prepare database for usage!"
 
 echo "[+] Restore completed! Please restart the snap.rocketchat services to verify."

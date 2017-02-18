@@ -16,3 +16,4 @@ tar zcvf ${backup_file} ${backup_dir}
 rm -rf ${backup_dir}
 
 echo "[+] A backup of your data can be found at ${backup_file}."
+

@@ -35,4 +35,27 @@ cd rocketchat-server-snap
 snapcraft snap
 ```
 
-
+### Regression tests (run for amd64, i386 and armhf):
+- snapcraft runs properly
+- snap installs properly
+- all services start automatically
+- rc service shows a 5-second restart delay while waiting for mongo
+	- to test manually, stop rc, stop mongo, start rc, wait 20s or so, start mongo
+- rc can be successfully restarted via the "Restart the server" button under Admin > Settings > General
+- rc service shows a 5-second delay when restarted via this button
+- all commands execute successfully:
+	- initcaddy
+		- modify the Caddyfile to test:
+			- self-signed TLS certificate (use the "tls self_signed" caddy directive)
+			- changing ports (with and without TLS)
+			- using IP address (only works without TLS)
+			- successfully acquiring a Let's Encrypt certificate (requires a registered domain)
+	- backupdb
+		- should run only with sudo
+	- restoredb
+		- ideally, stop rc service prior to running this (mongo must be running)
+		- should run only with sudo
+		- use any file outside of $snap_common (should fail)
+		- use the file created with backupdb
+		- use a dummy .tgz file without actual data
+			- with and without a "parties" directory in the archive
