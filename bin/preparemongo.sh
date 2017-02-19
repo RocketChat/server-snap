@@ -11,9 +11,10 @@ else
         wget --backups=0 ${link}
     done
 
-    IFS=" " read -a deb_pkgs <<< $(ls ./ | egrep -o "mongo.+\.deb")
+    IFS=" " read -a deb_pkgs <<< $(ls ./ | egrep "\.deb")
     for pkg in ${deb_pkgs[@]}
     do
+        echo "Extracting ${pkg}..."
         dpkg-deb -R ${pkg} ./
     done
 fi
