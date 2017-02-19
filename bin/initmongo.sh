@@ -1,8 +1,9 @@
 #! /bin/bash
 
-echo "initializing replset if necessary... in 30 seconds"
-sleep 30
+delay=30
+[[ $(uname -m) == arm* ]] && delay=60
+echo "initializing replset if necessary... in ${delay} seconds"
+sleep ${delay}
 
-echo "after 30 seconds, checking for replset..."
+echo "${delay} seconds elapsed; checking for replset..."
 mongo $SNAP/bin/initmongoreplset.js
-
