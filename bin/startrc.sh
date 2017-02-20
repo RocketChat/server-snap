@@ -7,11 +7,14 @@ export MONGO_URL=mongodb://localhost:27017/parties
 export MONGO_OPLOG_URL=mongodb://localhost:27017/local?replicaSet=rcreplset
 export Accounts_AvatarStorePath=$SNAP_COMMON/uploads
 
+delay=5
+[[ $(uname -m) == arm* ]] && delay=10
+
 node $SNAP/main.js
 
 while [[ $? == 1 ]]
 do
-    sleep 5
+    sleep ${delay}
     node $SNAP/main.js
 done
 
