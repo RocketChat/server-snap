@@ -7,7 +7,7 @@
 # 5.  `snapcraft snap`
 
 name: rocketchat-server
-version: 0.52.0
+version: 0.59.0
 summary: Rocket.Chat server
 description: Have your own Slack like online chat, built with Meteor. https://rocket.chat/
 
@@ -64,7 +64,7 @@ parts:
     rocketchat-server:
         after: [mongodb]
         plugin: dump
-        source: https://rocket.chat/releases/latest/download
+        source: https://download.rocket.chat/stable
         source-type: tar
         stage-packages:
             - graphicsmagick
