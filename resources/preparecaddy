@@ -5,6 +5,8 @@ caddy_version="v1.0.4"
 caddy_bin="caddy"
 caddy_dl_ext=".tar.gz"
 
+cd "$(dirname "$0")"
+
 # NOTE: `uname -m` is more accurate and universal than `arch`
 # See https://en.wikipedia.org/wiki/Uname
 unamem="$(uname -m)"
@@ -38,4 +40,5 @@ echo "$caddy_url"
 curl -L "$caddy_url" -o "$caddy_file"
 tar -xzf $caddy_file -C . "$caddy_bin"
 chmod +x $caddy_bin
+mv Caddyfile "$SNAPCRAFT_PART_INSTALL"
 mv $caddy_bin "$SNAPCRAFT_PART_INSTALL"
