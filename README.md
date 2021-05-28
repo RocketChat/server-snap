@@ -11,12 +11,10 @@ Features:
 
 Note:
 
-Currently, this repository is mirrored on launchpad, and used to build latest ARMHF and i386 snaps.   
+Currently, this repository is mirrored on launchpad, and used to build latest amd64 and arm64 snaps.
 
 You can download recent builds here:
 https://code.launchpad.net/~sing-li/+snap/rocketchat-server
-
-Due an issue with the existing installed base of amd64 users (existing snap always installed mongodb 3.2  [#issue](https://github.com/RocketChat/rocketchat-server-snap/issues/3)), this snap is not currently used for amd64 builds.
 
 ### Test installation 
 
@@ -27,7 +25,7 @@ Download the latest snap file of the corresponding architecture to your Ubuntu C
 
 ### Development or compile your own snap
 
-Make sure you have `snapcraft` installed.
+Make sure you have `snapcraft` installed and replace `ROCKET_CHAT_BUILD_VERSION` with which version of Rocket.Chat you want to build.
 
 ```
 git clone https://github.com/RocketChat/rocketchat-server-snap
