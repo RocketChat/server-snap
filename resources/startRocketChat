@@ -43,9 +43,6 @@ function start_rocketchat {
 	node $SNAP/main.js
 }
 
-sleep_time=5
-try_times=0
-
 function try_start {
 
         refreshing="$(snapctl get snap-refreshing)"
@@ -53,23 +50,7 @@ function try_start {
             exit 0
         fi
 
-	search=$(ps --pid $(cat $SNAP_COMMON/mongod.pid) -o comm=)
-
-	if [ $search ]
-        	then
-                	start_rocketchat
-        	else
-			if [[ "$try_times" == 5 || "$try_times" > 5 ]]; then
-		                echo "Was unable to connect to Mongo.  Please make sure Mongo has started successfully: sudo systemctl status snap.rocketchat-server.rocketchat-mongo to view logs: sudo journalctl -u snap.rocketchat-server.rocketchat-mongo"
-               			exit 1;
-        		fi
-
-			((try_times += 1))
-			((sleep_time += 5))
-                	echo "Mongo is not available, can't start. Waiting ${sleep_time} seconds and trying again"
-			sleep $sleep_time
-			try_start
-	fi
+        start_rocketchat
 }
 
 try_start
