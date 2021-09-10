@@ -1,0 +1,8 @@
+#! /bin/bash
+
+mongod --config=$SNAP_DATA/mongod.conf \
+  --bind_ip=127.0.0.1 --port=27017 \
+  --smallfiles --dbpath=$SNAP_COMMON \
+  --pidfilepath=$SNAP_COMMON/mongod.pid --journal \
+  --replSet=rs0 \
+  --fork --syslog

@@ -1,0 +1,13 @@
+#! /bin/bash
+
+# Basically do not 'fail'
+# if Caddyfile is not found, because now it will.
+
+if [[ -f $SNAP_DATA/Caddyfile ]]; then
+  caddy --conf=$SNAP_DATA/Caddyfile
+  exit $?
+fi
+
+site_url=$(snapctl get site-url)
+[[ $site_url =~ ^https:// ]] && caddy reverse-proxy --change-host-header \
+    --from=$site_url --to=http://localhost:$(snapctl get port)

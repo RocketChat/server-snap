@@ -1,122 +1,127 @@
-#
-# Easiest way to work with this file, from an updated Ubuntu 16.04 LTS image
-# 1.   create a non-root user with sudo priv and perform following steps as non-root
-# 2.  `sudo apt-get update`
-# 3.  `sudo apt-get install snapcraft python build-essential`
-# 4.  `snapcraft stage`
-# 5.  `snapcraft snap`
-
-name: rocketchat-server
-version: ROCKET_CHAT_BUILD_VERSION
-summary: Rocket.Chat server
-description: Have your own Slack like online chat, built with Meteor. https://rocket.chat/
-confinement: strict
+name: rocketchat-server-development
+title: Rocket.Chat Server Development Version
 base: core
-assumes: [snapd2.21]
-apps:
-    rocketchat-server:
-        command: startRocketChat
-        daemon: simple
-        plugs: [network, network-bind, removable-media]
-    rocketchat-mongo:
-        command: startmongo
-        daemon: simple
-        plugs: [network, network-bind, network-observe]
-    rocketchat-caddy:
-        command: env LC_ALL=C caddy -conf=$SNAP_DATA/Caddyfile
-        daemon: simple
-        plugs: [network, network-bind]
-    mongo:
-        command: env LC_ALL=C mongo
-        plugs: [network]
-    restoredb:
-        command: env LC_ALL=C restoredb
-        plugs: [network]
-    backupdb:
-        command: env LC_ALL=C backupdb
-        plugs: [network]
-    initcaddy:
-        command: env LC_ALL=C initcaddy
-hooks:
-    configure:
-        plugs: [network]
-    pre-refresh:
-        plugs: [network]
-parts:
-    node:
-        plugin: dump
-        source: ./
-        override-build: ./resources/preparenode
-        build-environment:
-            - node_version: v12.22.1
-        build-packages:
-            # For fibers
-            - python
-            - build-essential
-            - nodejs
-        stage:
-            - bin
-            - include
-            - share
-            - lib
-    rocketchat-server:
-        build-packages:
-            - curl
-        plugin: dump
-        override-build: ./resources/prepareRocketChat
-        after: [node]
-        source: ./
-        stage-packages:
-            - execstack
-            - fontconfig-config
-        stage:
-            - programs
-            - main.js
-            - .node_version.txt
-            - etc
-            - usr
-            - star.json
-    mongodb:
-        build-packages:
-            - wget
-        source: ./
-        override-build: ./resources/preparemongo
-        plugin: dump
-        stage-packages:
-            - libssl1.0.0
-        prime:
-            - usr
-            - bin
-            - lib
-    scripts:
-        plugin: dump
-        source: ./resources/
-        source-type: local
-        organize:
-            backupdb: bin/backupdb
-            restoredb: bin/restoredb
-            startmongo: bin/startmongo
-            startRocketChat: bin/startRocketChat
-            initreplset.js: bin/initreplset.js
-            Caddyfile: bin/Caddyfile
-            initcaddy: bin/initcaddy
-        prime:
-            - bin
-    caddy:
-        override-build: ./resources/preparecaddy
-        plugin: dump
-        source: ./
-        prime:
-            - bin
-        organize:
-            caddy: bin/caddy
-        after: [mongodb]
-    hooks:
-        plugin: nil
-        stage-packages:
-            - dnsutils
-            - curl
-        prime:
-            - usr
-            - lib
+version: '3.18.0'
+summary: An Open Source Slack Alternative
+description: |
+  Development builds of Rocket.Chat
 
+grade: stable
+confinement: strict
+
+architectures:
+  - build-on:
+      - amd64
+      - arm64
+
+plugs:
+  network:
+
+apps:
+  rocketchat-mongo:
+    command: bin/mongod.wrapper
+    daemon: forking
+    plugs: [network-bind]
+
+  rocketchat-server:
+    command: bin/rocketchat.wrapper
+    environment:
+      XDG_DATA_HOME: $SNAP/usr/share
+      FONTCONFIG_PATH: $SNAP/etc/fonts/config.d
+      FONTCONFIG_FILE: $SNAP/etc/fonts/fonts.conf
+      DEPLOY_METHOD: snap
+      NODE_ENV: production
+      BABEL_CACHE_DIR: /tmp
+      ROOT_URL: http://localhost:3001
+      Accounts_AvatarStorePath: $SNAP_COMMON/uploads
+    daemon: simple
+    after: [rocketchat-mongo]
+    plugs:
+      - network-bind
+      - removable-media
+
+  mongo:
+    command: usr/bin/mongo
+
+  rocketchat-caddy:
+    command: bin/caddy.wrapper
+    daemon: simple
+    plugs: [network-bind]
+
+hooks:
+  install: { plugs: [network-bind] }
+
+parts:
+  mongo:
+    plugin: mongodb
+    version: '3.6'
+    components:
+      - shell
+      - server
+      - tools
+    tools:
+      - mongodump
+      - mongorestore
+    filesets:
+      stage-fileset:
+        - -etc
+        - -lib/systemd
+        - -usr/share
+    stage: &stage
+      - $stage-fileset
+
+  rocketchat:
+    plugin: dump
+    source: https://cdn-download.rocket.chat/build/rocket.chat-$SNAPCRAFT_PROJECT_VERSION.tgz
+    build-snaps:
+      - node/12/stable
+    stage-snaps:
+      - node/12/stable
+    build-packages:
+      - build-essential
+      - on arm64:
+          - autoconf
+          - automake
+          - libtool
+    override-build: |
+      cd programs/server
+
+      [ "$SNAP_ARCH" = "arm64" ] && rm npm/node_modules/sharp/vendor -rf
+      NODE_ENV=production npm i --unsafe-perm
+
+      snapcraftctl build
+    filesets:
+      stage-fileset:
+        - -README
+        # filesets are excluding hidden files
+        # BUG - need to fix upstream
+        # TODO: unrelated to this project, fix this iglob issue upstream
+        # so that I can have a cleaner snapcraft file -_-
+        - .node_version.txt
+        - '*'
+    stage: *stage
+
+  caddy:
+    plugin: dump
+    source:
+      - on amd64: https://github.com/caddyserver/caddy/releases/download/v2.4.3/caddy_2.4.3_linux_amd64.tar.gz
+      - on arm64: https://github.com/caddyserver/caddy/releases/download/v2.4.3/caddy_2.4.3_linux_arm64.tar.gz
+    organize:
+      caddy: bin/caddy
+    filesets:
+      stage-fileset:
+        - -README.md
+        - -LICENSE
+    stage: *stage
+
+  wrappers:
+    plugin: dump
+    source: './wrappers'
+    organize:
+      '*': 'bin/'
+
+  scripts:
+    plugin: dump
+    source: './scripts'
+    organize:
+      '*': 'bin/'

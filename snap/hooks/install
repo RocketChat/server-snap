@@ -1,26 +1,97 @@
-#!/bin/bash
+#! /bin/bash
 
-# Initialize the CADDY_URL to a default
-snapctl set caddy=disable
+export PATH="$SNAP/bin:$SNAP/usr/bin:$PATH"
 
-# Initialize the PORT to a default
-snapctl set port=3000
+error() {
+  printf "[ERROR] %s\n" "$*" >&2
+  exit 1
+}
 
-# Initialize the MONGO_URL to a default
-snapctl set mongo-url=mongodb://localhost:27017/parties
+start_mongod() {
+  mongod \
+    --bind_ip=127.0.0.1 --port=27017 \
+    --smallfiles --dbpath=$SNAP_COMMON \
+    --pidfilepath=$SNAP_COMMON/mongod.pid --journal \
+    --replSet=rs0 \
+    --fork --syslog
+}
 
-# Initialize the MONGO_OPLOG_URL to a default
-snapctl set mongo-oplog-url=mongodb://localhost:27017/local
+stop_mongod() {
+  mongod --dbpath=$SNAP_COMMON --shutdown
+}
 
-# Initialize the protocol to a default
-snapctl set https=disable
+_mongo() {
+  mongo --quiet --eval "$@"
+}
 
-# Initialize backup to a default
-snapctl set backup-on-refresh=disable
+is_mongo_ready() {
+  test "$(_mongo 'db.adminCommand({ ping: 1 }).ok' admin)" = 1
+}
 
-# Initialize snap-refreshing to false
-snapctl set snap-refreshing=false
+initiate_replicaset() {
+  local cmd
 
-# Initialize db-feature-compatibility-version to 3.6
-snapctl set db-feature-compatibility-version=3.6
+  read -rd '' cmd <<EOF
+if (!db.isMaster().ismaster) {
+  rs.initiate(
+    {
+      _id: "rs0",
+      members: [
+        {
+          _id: 0,
+          host: "localhost:27017"
+        }
+      ]
+    }
+  ).ok;
+}
+EOF
 
+  if is_mongo_ready; then
+    rs=$(_mongo "$cmd")
+    test ${rs:-0} -eq 1
+  else
+    error "mongo started but still isn't ready for connections"
+  fi
+}
+
+init_mongod_conf() {
+  cat >$SNAP_DATA/mongod.conf <<EOF
+# for documentation of all options, see:
+#   http://docs.mongodb.org/manual/reference/configuration-options/
+
+
+################################################################
+# THE FOLLOWING SETTINGS ARE GOING TO BE OVERRIDEN BY THIS SNAP
+# storage
+# systemLog
+# net
+################################################################
+
+
+# how the process runs
+processManagement:
+  timeZoneInfo: /usr/share/zoneinfo
+
+EOF
+}
+
+init_default_snap_configurations() {
+  snapctl set port=3001
+  snapctl set mongo-url=mongodb://localhost:27017/parties
+  snapctl set mongo-oplog-url=mongodb://localhost:27017/local
+  snapctl set snap-refreshing=false
+  snapctl set siteurl=http://localhost:3001
+  snapctl set db-feature-compatibility-version=3.6
+  snapctl set backup-on-refresh=disable
+}
+
+main() {
+  start_mongod || error "mongo server start failed"
+  initiate_replicaset || error "replicaset initiation failed"
+  stop_mongod || error "mongo server shutdown failed"
+  init_mongod_conf
+  init_default_snap_configurations
+}
+
+main
