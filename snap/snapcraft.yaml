@@ -1,10 +1,10 @@
 name: rocketchat-server
 title: Rocket.Chat Server Development Version
 base: core
-version: "3.18.0"
+version: ROCKET_CHAT_BUILD_VERSION
 summary: An Open Source Slack Alternative
 description: |
-  Development builds of Rocket.Chat
+  Have your own Slack like online chat, built with Meteor. https://rocket.chat/
 
 grade: stable
 confinement: strict
@@ -126,13 +126,13 @@ parts:
         - -LICENSE
     stage: *stage
 
-  wrappers:
+  daemons:
     plugin: dump
     source: "./daemons"
     organize:
       "*": "bin/"
 
-  scripts:
+  commands:
     plugin: dump
     source: "./commands"
     organize:
