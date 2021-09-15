@@ -1,24 +1,7 @@
 #! /bin/bash
-# temporary
 
-cat >$SNAP_DATA/mongod.conf <<EOF
+# temporary for migration from previous builds to this new one.
 
-# for documentation of all options, see:
-#   http://docs.mongodb.org/manual/reference/configuration-options/
+touch $SNAP_DATA/mongod.conf
 
-
-################################################################
-# THE FOLLOWING SETTINGS ARE GOING TO BE OVERRIDEN BY THIS SNAP
-# storage
-# systemLog
-# net
-################################################################
-
-
-# how the process runs
-processManagement:
-  timeZoneInfo: /usr/share/zoneinfo
-
-EOF
-
-snapctl set siteurl=http://localhost:3000
+[[ -z $(snapctl get siteurl) ]] && snapctl set siteurl=http://localhost:3000

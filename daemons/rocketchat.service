@@ -23,7 +23,6 @@ start_rocketchat() {
   MONGO_URL=$(snapctl get mongo-url)
   MONGO_OPLOG_URL=$(snapctl get mongo-oplog-url)
   ROOT_URL=$(snapctl get siteurl)
-  Accounts_AvatarStorePath=$SNAP_COMMON/uploads
   set +a
 
   init_user_environment_variables
