@@ -56,7 +56,9 @@ EOF
 }
 
 init_mongod_conf() {
+  # TODO: complete the template mongo config
   cat >$SNAP_DATA/mongod.conf <<EOF
+
 # for documentation of all options, see:
 #   http://docs.mongodb.org/manual/reference/configuration-options/
 
@@ -77,11 +79,10 @@ EOF
 }
 
 init_default_snap_configurations() {
-  snapctl set port=3001
+  snapctl set port=3000
   snapctl set mongo-url=mongodb://localhost:27017/parties
   snapctl set mongo-oplog-url=mongodb://localhost:27017/local
-  snapctl set snap-refreshing=false
-  snapctl set siteurl=http://localhost:3001
+  snapctl set siteurl=http://localhost:3000
   snapctl set db-feature-compatibility-version=3.6
   snapctl set backup-on-refresh=disable
 }

@@ -1,7 +1,7 @@
-name: rocketchat-server-development
+name: rocketchat-server
 title: Rocket.Chat Server Development Version
 base: core
-version: '3.18.0'
+version: "3.18.0"
 summary: An Open Source Slack Alternative
 description: |
   Development builds of Rocket.Chat
@@ -19,12 +19,12 @@ plugs:
 
 apps:
   rocketchat-mongo:
-    command: bin/mongod.wrapper
+    command: bin/mongod.service
     daemon: forking
     plugs: [network-bind]
 
   rocketchat-server:
-    command: bin/rocketchat.wrapper
+    command: bin/rocketchat.service
     environment:
       XDG_DATA_HOME: $SNAP/usr/share
       FONTCONFIG_PATH: $SNAP/etc/fonts/config.d
@@ -32,21 +32,34 @@ apps:
       DEPLOY_METHOD: snap
       NODE_ENV: production
       BABEL_CACHE_DIR: /tmp
-      ROOT_URL: http://localhost:3001
-      Accounts_AvatarStorePath: $SNAP_COMMON/uploads
+      LC_ALL: C
     daemon: simple
     after: [rocketchat-mongo]
     plugs:
       - network-bind
       - removable-media
 
-  mongo:
-    command: usr/bin/mongo
-
   rocketchat-caddy:
-    command: bin/caddy.wrapper
+    command: bin/caddy.service
+    environment:
+      LC_ALL: C
     daemon: simple
     plugs: [network-bind]
+
+  mongo:
+    command: usr/bin/mongo
+    environment:
+      LC_ALL: C
+
+  backupdb:
+    command: bin/backupdb.sh
+    environment:
+      LC_ALL: C
+
+  restoredb:
+    command: bin/restoredb.sh
+    environment:
+      LC_ALL: C
 
 hooks:
   install: { plugs: [network-bind] }
@@ -54,7 +67,7 @@ hooks:
 parts:
   mongo:
     plugin: mongodb
-    version: '3.6'
+    version: "3.6"
     components:
       - shell
       - server
@@ -95,10 +108,9 @@ parts:
         - -README
         # filesets are excluding hidden files
         # BUG - need to fix upstream
-        # TODO: unrelated to this project, fix this iglob issue upstream
-        # so that I can have a cleaner snapcraft file -_-
+        # not a bug, design choice
         - .node_version.txt
-        - '*'
+        - "*"
     stage: *stage
 
   caddy:
@@ -116,12 +128,17 @@ parts:
 
   wrappers:
     plugin: dump
-    source: './wrappers'
+    source: "./daemons"
     organize:
-      '*': 'bin/'
+      "*": "bin/"
 
   scripts:
     plugin: dump
-    source: './scripts'
+    source: "./commands"
     organize:
-      '*': 'bin/'
+      "*": "bin/"
+
+  hooks:
+    plugin: nil
+    # for hooks::configure::validate_url
+    stage-packages: [dnsutils]
