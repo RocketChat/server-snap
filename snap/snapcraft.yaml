@@ -1,5 +1,5 @@
 name: rocketchat-server
-title: Rocket.Chat Server Development Version
+title: Rocket.Chat Server
 base: core
 version: ROCKET_CHAT_BUILD_VERSION
 summary: An Open Source Slack Alternative
