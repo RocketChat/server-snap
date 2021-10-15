@@ -1,5 +1,9 @@
 #!/bin/bash
 
+export PATH="$SNAP/bin:$SNAP/usr/bin:$PATH"
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$SNAP/lib:$SNAP/usr/lib:$SNAP/lib/x86_64-linux-gnu:$SNAP/usr/lib/x86_64-linux-gnu"
+export LD_LIBRARY_PATH="$SNAP_LIBRARY_PATH:$LD_LIBRARY_PATH"
+
 if (( $EUID )); then
     echo "[-] This task must be run with 'sudo'." >&2
     exit 1

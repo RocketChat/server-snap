@@ -1,10 +1,12 @@
 name: rocketchat-server
 title: Rocket.Chat Server
-base: core
-version: ROCKET_CHAT_BUILD_VERSION
+base: core20
+version: 4.0.2
 summary: An Open Source Slack Alternative
 description: |
   Have your own Slack like online chat, built with Meteor. https://rocket.chat/
+
+epoch: 1
 
 grade: stable
 confinement: strict
@@ -47,7 +49,7 @@ apps:
     plugs: [network-bind]
 
   mongo:
-    command: usr/bin/mongo
+    command: bin/mongo
     environment:
       LC_ALL: C
 
@@ -65,23 +67,47 @@ hooks:
   install: { plugs: [network-bind] }
 
 parts:
-  mongo:
-    plugin: mongodb
-    version: "3.6"
-    components:
-      - shell
-      - server
-      - tools
-    tools:
-      - mongodump
-      - mongorestore
+  mongodb:
+    plugin: dump
+    source:
+      - on amd64: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu2004-5.0.3.tgz
+      - on arm64: https://fastdl.mongodb.org/linux/mongodb-linux-aarch64-ubuntu2004-5.0.3.tgz
+    stage-packages:
+      # For the dependecies:
+      # https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu-tarball/#install-mongodb-community-edition
+      - libcurl4
+      - openssl
+      - liblzma5
     filesets:
       stage-fileset:
-        - -etc
-        - -lib/systemd
-        - -usr/share
+        - -LICENSE-Community.txt
+        - -MPL-2
+        - -THIRD-PARTY-NOTICES
+        - -README
+        - -bin/install_compass
+        - -bin/mongos
+        - -usr/share/doc
+        - -usr/share/man
     stage: &stage
       - $stage-fileset
+
+  mongodb-tools:
+    plugin: dump
+    source:
+      - on amd64: https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2004-x86_64-100.5.0.tgz
+      - on arm64: https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2004-arm64-100.5.0.tgz
+    filesets:
+      stage-fileset:
+        - -README.md
+        - -LICENSE.md
+        - -THIRD-PARTY-NOTICES
+        - -bin/bsondump
+        - -bin/mongoexport
+        - -bin/mongoimport
+        - -bin/mongofiles
+        - -bin/mongotop
+        - -bin/mongostat
+    stage: *stage
 
   rocketchat:
     plugin: dump
@@ -106,6 +132,8 @@ parts:
     filesets:
       stage-fileset:
         - -README
+        - -README.md
+        - -LICENSE
         # filesets are excluding hidden files
         # BUG - need to fix upstream
         # not a bug, design choice
@@ -142,3 +170,9 @@ parts:
     plugin: nil
     # for hooks::configure::validate_url
     stage-packages: [dnsutils]
+
+  migrations:
+    plugin: dump
+    source: ./migrations
+    organize:
+      "*": opt/rocketchat/migrations/

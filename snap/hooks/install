@@ -1,6 +1,8 @@
 #! /bin/bash
 
 export PATH="$SNAP/bin:$SNAP/usr/bin:$PATH"
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$SNAP/lib:$SNAP/usr/lib:$SNAP/lib/x86_64-linux-gnu:$SNAP/usr/lib/x86_64-linux-gnu"
+export LD_LIBRARY_PATH="$SNAP_LIBRARY_PATH:$LD_LIBRARY_PATH"
 
 error() {
   printf "[ERROR] %s\n" "$*" >&2
@@ -10,7 +12,7 @@ error() {
 start_mongod() {
   mongod \
     --bind_ip=127.0.0.1 --port=27017 \
-    --smallfiles --dbpath=$SNAP_COMMON \
+    --dbpath=$SNAP_COMMON \
     --pidfilepath=$SNAP_COMMON/mongod.pid --journal \
     --replSet=rs0 \
     --fork --syslog
@@ -56,26 +58,36 @@ EOF
 }
 
 init_mongod_conf() {
-  # TODO: complete the template mongo config
   cat >$SNAP_DATA/mongod.conf <<EOF
 
-# for documentation of all options, see:
+# For documentation of all options, see:
 #   http://docs.mongodb.org/manual/reference/configuration-options/
 
+# processManagement::fork and systemlog::* are ignored
 
-################################################################
-# THE FOLLOWING SETTINGS ARE GOING TO BE OVERRIDEN BY THIS SNAP
-# storage
-# systemLog
-# net
-################################################################
+net:
+  bindIp: 127.0.0.1
+  port: 27017
 
+setParameter:
+  enableLocalhostAuthBypass: false
 
-# how the process runs
-processManagement:
-  timeZoneInfo: /usr/share/zoneinfo
+storage:
+  dbPath: $SNAP_COMMON
+  journal:
+    enabled: true
+
+systemLog:
+  destination: syslog
+
+replication:
+  replSetName: rs0
 
 EOF
+}
+
+init_caddy_conf() {
+  touch $SNAP_DATA/Caddyfile
 }
 
 init_default_snap_configurations() {
@@ -92,6 +104,7 @@ main() {
   initiate_replicaset || error "replicaset initiation failed"
   stop_mongod || error "mongo server shutdown failed"
   init_mongod_conf
+  init_caddy_conf
   init_default_snap_configurations
 }
 

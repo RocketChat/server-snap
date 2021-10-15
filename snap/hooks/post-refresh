@@ -1,7 +1,18 @@
 #! /bin/bash
 
-# temporary for migration from previous builds to this new one.
+export PATH="$SNAP/bin:$SNAP/usr/bin:$PATH"
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$SNAP/lib:$SNAP/usr/lib:$SNAP/lib/x86_64-linux-gnu:$SNAP/usr/lib/x86_64-linux-gnu"
+export LD_LIBRARY_PATH="$SNAP_LIBRARY_PATH:$LD_LIBRARY_PATH"
 
-touch $SNAP_DATA/mongod.conf
+exec_post_refresh_scripts() {
+    find /opt/rocketchat/migrations -perm -a=+x \
+        -not -path . -not -path .. \
+        -maxdepth 1 -regex 'post_.*' \
+        -exec {} \; -exec chmod -x {} \;
+}
 
-[[ -z $(snapctl get siteurl) ]] && snapctl set siteurl=http://localhost:3000
+main() {
+    exec_post_refresh_scripts
+}
+
+main

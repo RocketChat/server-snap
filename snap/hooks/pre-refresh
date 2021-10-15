@@ -2,9 +2,27 @@
 
 export PATH="$SNAP/usr/sbin:$SNAP/usr/bin:$SNAP/sbin:$SNAP/bin:$PATH"
 export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$SNAP/lib:$SNAP/usr/lib:$SNAP/lib/x86_64-linux-gnu:$SNAP/usr/lib/x86_64-linux-gnu"
+export LD_LIBRARY_PATH=$SNAP_LIBRARY_PATH:$LD_LIBRARY_PATH
 
-TIMESTAMP=$(date +"%Y%m%d.%H%M")
+backup_if_enabled() {
+  [[ $(snapctl get backup-on-refresh) == "enable" ]] && {
+    backupdb || {
+      echo "failed to backup rocketchat database before refresh" \
+        > $SNAP_COMMON/refresh_$(date +"%Y%m%d.%H%M").log
+    }
+  }
+}
 
-[[ $(snapctl get backup-on-refresh) == "enable" ]] && backupdb
+exec_pre_refresh_scripts() {
+    find /opt/rocketchat/migrations -perm -a=+x \
+        -not -path . -not -path .. \
+        -maxdepth 1 -regex 'pre_.*' \
+        -exec {} \; -exec chmod -x {} \;
+}
 
-(( $? )) && echo "failed to backup rocketchat database before refresh" > $SNAP_COMMON/refresh_$TIMESTAMP.log
+main() {
+  backup_if_enabled
+  exec_pre_refresh_scripts
+}
+
+main
