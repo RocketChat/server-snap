@@ -175,4 +175,4 @@ parts:
     plugin: dump
     source: ./migrations
     organize:
-      "*": opt/rocketchat/migrations/
+      "*": migrations/

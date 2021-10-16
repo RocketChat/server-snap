@@ -14,7 +14,7 @@ backup_if_enabled() {
 }
 
 exec_pre_refresh_scripts() {
-    find /opt/rocketchat/migrations -perm -a=+x \
+    find $SNAP/migrations -perm -a=+x \
         -not -path . -not -path .. \
         -maxdepth 1 -regex 'pre_.*' \
         -exec {} \; -exec chmod -x {} \;

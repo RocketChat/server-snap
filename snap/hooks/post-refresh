@@ -5,7 +5,7 @@ export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$SNAP/lib:$SNAP/usr/lib:$SNAP/lib/x86_6
 export LD_LIBRARY_PATH="$SNAP_LIBRARY_PATH:$LD_LIBRARY_PATH"
 
 exec_post_refresh_scripts() {
-    find /opt/rocketchat/migrations -perm -a=+x \
+    find $SNAP/migrations -perm -a=+x \
         -not -path . -not -path .. \
         -maxdepth 1 -regex 'post_.*' \
         -exec {} \; -exec chmod -x {} \;
