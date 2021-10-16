@@ -30,7 +30,7 @@ is_mongo_ready() {
   test "$(_mongo 'db.adminCommand({ ping: 1 }).ok' admin)" = 1
 }
 
-initiate_replicaset() {
+init_replicaset() {
   local cmd
 
   read -rd '' cmd <<EOF
@@ -86,6 +86,10 @@ replication:
 EOF
 }
 
+init_mongod_feature_compatibility_version() {
+  test $(_mongo 'db.adminCommand({ setFeatureCompatibilityVersion: "5.0" }).ok') = 1
+}
+
 init_caddy_conf() {
   touch $SNAP_DATA/Caddyfile
 }
@@ -95,13 +99,13 @@ init_default_snap_configurations() {
   snapctl set mongo-url=mongodb://localhost:27017/parties
   snapctl set mongo-oplog-url=mongodb://localhost:27017/local
   snapctl set siteurl=http://localhost:3000
-  snapctl set db-feature-compatibility-version=3.6
   snapctl set backup-on-refresh=disable
 }
 
 main() {
   start_mongod || error "mongo server start failed"
-  initiate_replicaset || error "replicaset initiation failed"
+  init_replicaset || error "replicaset initiation failed"
+  init_mongod_feature_compatibility_version || error "feature compatibility version set failed"
   stop_mongod || error "mongo server shutdown failed"
   init_mongod_conf
   init_caddy_conf

@@ -47,25 +47,11 @@ validate_backup_on_refresh() {
   [[ $(snapctl get backup-on-refresh) =~ ^(enable)|(disable)$ ]] || error "value must be either \"enable\" or \"disable\""
 }
 
-validate_and_set_feature_compatibility_version() {
-  local feature_compatibility_version=$(snapctl get db-feature-compatibility-version)
-  [[ $feature_compatibility_version =~ ^3\.4|6$ ]] || error "feature compatibility version should be either 3.4 or 3.6"
-  mongo --quiet --eval \
-    "printjson(
-      db.adminCommand(
-        {
-          setFeatureCompatibilityVersion: $feature_compatibility_version
-        }
-      )
-    )"
-}
-
 main() {
   validate_port
   validate_mongo_rocketchat_url
   validate_mongo_oplog_url
   validate_backup_on_refresh
-  validate_and_set_feature_compatibility_version
 }
 
 main
