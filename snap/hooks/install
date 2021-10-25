@@ -48,7 +48,7 @@ mongo_with_error_check() {
 }
 
 is_mongo_ready() {
-  for _ in {0..$MAX_MONGOD_START_RETRY_COUNT}; do
+  for _ in $(seq 0 $MAX_MONGOD_START_RETRY_COUNT); do
     (( $(mongo 'db.adminCommand({ ping: 1 }).ok') == 1 )) && return
     sleep $MAX_MONGOD_START_WAIT_SECONDS
   done
@@ -75,7 +75,7 @@ init_replicaset() {
 }
 
 is_primary() {
-  for _ in {0..$MAX_MONGOD_PRIMARY_RETRY_COUNT}; do
+  for _ in $(seq 0 $MAX_MONGOD_PRIMARY_RETRY_COUNT); do
     [[ $(mongo 'db.hello().isWritablePrimary') == "true" ]] && return
     sleep $MAX_MONGOD_PRIMARY_WAIT_SECONDS
   done
