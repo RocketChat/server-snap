@@ -171,7 +171,7 @@ parts:
     stage-packages:
       # for hooks::configure::validate_url
       - dnsutils
-      # for install::_mongo
+      # for install::jq
       - jq
 
   migrations:

@@ -52,7 +52,7 @@ is_mongo_ready() {
     (( $(mongo 'db.adminCommand({ ping: 1 }).ok') == 1 )) && return
     sleep $MAX_MONGOD_START_WAIT_SECONDS
   done
-  error "mongod server start wait retry count exceeded"
+  error "mongod server start wait timed out"
 }
 
 init_replicaset() {
@@ -79,7 +79,7 @@ is_primary() {
     [[ $(mongo 'db.hello().isWritablePrimary') == "true" ]] && return
     sleep $MAX_MONGOD_PRIMARY_WAIT_SECONDS
   done
-  error "primary selection retry count exceeded"
+  error "primary selection wait timed out"
 }
 
 init_mongod_conf() {
