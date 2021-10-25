@@ -166,10 +166,13 @@ parts:
     organize:
       "*": "bin/"
 
-  hooks:
+  script-dependecies:
     plugin: nil
-    # for hooks::configure::validate_url
-    stage-packages: [dnsutils]
+    stage-packages:
+      # for hooks::configure::validate_url
+      - dnsutils
+      # for install::_mongo
+      - jq
 
   migrations:
     plugin: dump

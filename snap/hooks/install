@@ -4,6 +4,16 @@ export PATH="$SNAP/bin:$SNAP/usr/bin:$PATH"
 export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$SNAP/lib:$SNAP/usr/lib:$SNAP/lib/x86_64-linux-gnu:$SNAP/usr/lib/x86_64-linux-gnu"
 export LD_LIBRARY_PATH="$SNAP_LIBRARY_PATH:$LD_LIBRARY_PATH"
 
+readonly MAX_MONGOD_START_WAIT_SECONDS=1
+readonly MAX_MONGOD_START_RETRY_COUNT=30
+readonly MAX_MONGOD_PRIMARY_WAIT_SECONDS=5
+readonly MAX_MONGOD_PRIMARY_RETRY_COUNT=10
+
+jq() {
+  # 1: key 2: string
+  command jq -r "if has(\"$1\") then .$1 else halt_error(1) end" <<< $2
+}
+
 error() {
   printf "[ERROR] %s\n" "$*" >&2
   exit 1
@@ -15,46 +25,61 @@ start_mongod() {
     --dbpath=$SNAP_COMMON \
     --pidfilepath=$SNAP_COMMON/mongod.pid --journal \
     --replSet=rs0 \
-    --fork --syslog
+    --fork --syslog \
+    \
+    \
+    || error "mongo server start failed"
 }
 
 stop_mongod() {
-  mongod --dbpath=$SNAP_COMMON --shutdown
+  mongod --dbpath=$SNAP_COMMON --shutdown || error "mongo server shutdown failed"
 }
 
-_mongo() {
-  mongo --quiet --eval "$@"
+mongo() {
+  command mongo --quiet --eval "$1"
+}
+
+mongo_with_error_check() {
+  # 1: command 2: errormsg
+  local output=$(mongo "$1")
+  (( $(jq ok $output) == 1 )) && return
+  jq errmsg $output >&2
+  error ${2?-"$1" command failed}
 }
 
 is_mongo_ready() {
-  test "$(_mongo 'db.adminCommand({ ping: 1 }).ok' admin)" = 1
+  for _ in {0..$MAX_MONGOD_START_RETRY_COUNT}; do
+    (( $(mongo 'db.adminCommand({ ping: 1 }).ok') == 1 )) && return
+    sleep $MAX_MONGOD_START_WAIT_SECONDS
+  done
+  error "mongod server start wait retry count exceeded"
 }
 
 init_replicaset() {
-  local cmd
-
-  read -rd '' cmd <<EOF
-if (!db.isMaster().ismaster) {
-  rs.initiate(
-    {
-      _id: "rs0",
-      members: [
-        {
-          _id: 0,
-          host: "localhost:27017"
-        }
-      ]
-    }
-  ).ok;
+  mongo_with_error_check '
+    if (!db.isMaster().ismaster) {
+      JSON.stringify(
+        rs.initiate(
+          {
+            _id: "rs0",
+            members: [
+              {
+                _id: 0,
+                host: "localhost:27017"
+              }
+            ]
+          }
+        )
+      )
+    }' "replicaset initialization failed"
 }
-EOF
 
-  if is_mongo_ready; then
-    rs=$(_mongo "$cmd")
-    test ${rs:-0} -eq 1
-  else
-    error "mongo started but still isn't ready for connections"
-  fi
+is_primary() {
+  for _ in {0..$MAX_MONGOD_PRIMARY_RETRY_COUNT}; do
+    [[ $(mongo 'db.hello().isWritablePrimary') == "true" ]] && return
+    sleep $MAX_MONGOD_PRIMARY_WAIT_SECONDS
+  done
+  error "primary selection retry count exceeded"
 }
 
 init_mongod_conf() {
@@ -87,7 +112,7 @@ EOF
 }
 
 init_mongod_feature_compatibility_version() {
-  test $(_mongo 'db.adminCommand({ setFeatureCompatibilityVersion: "5.0" }).ok') = 1
+  mongo_with_error_check 'JSON.stringify(db.adminCommand({ setFeatureCompatibilityVersion: "5.0" }))'
 }
 
 init_caddy_conf() {
@@ -103,10 +128,12 @@ init_default_snap_configurations() {
 }
 
 main() {
-  start_mongod || error "mongo server start failed"
-  init_replicaset || error "replicaset initiation failed"
-  init_mongod_feature_compatibility_version || error "feature compatibility version set failed"
-  stop_mongod || error "mongo server shutdown failed"
+  start_mongod
+  is_mongo_ready
+  init_replicaset
+  is_primary
+  init_mongod_feature_compatibility_version
+  stop_mongod
   init_mongod_conf
   init_caddy_conf
   init_default_snap_configurations
