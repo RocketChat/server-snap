@@ -1,13 +1,12 @@
 #! /bin/bash
 
-set -e
-set -o pipefail
-
 export PATH="$SNAP/bin:$SNAP/usr/bin:$PATH"
 export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$SNAP/lib:$SNAP/usr/lib:$SNAP/lib/x86_64-linux-gnu:$SNAP/usr/lib/x86_64-linux-gnu"
 export LD_LIBRARY_PATH="$SNAP_LIBRARY_PATH:$LD_LIBRARY_PATH"
 
 exec_post_refresh_scripts() {
+    set -e
+    set -o pipefail
     find $SNAP/migrations -perm -a=+x \
         -not -path . -not -path .. \
         -maxdepth 1 -regex 'post_.*' \

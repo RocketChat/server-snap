@@ -1,15 +1,12 @@
 #! /bin/bash
 
-set -e
-set -o pipefail
-
 export PATH="$SNAP/usr/sbin:$SNAP/usr/bin:$SNAP/sbin:$SNAP/bin:$PATH"
 export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$SNAP/lib:$SNAP/usr/lib:$SNAP/lib/x86_64-linux-gnu:$SNAP/usr/lib/x86_64-linux-gnu"
 export LD_LIBRARY_PATH=$SNAP_LIBRARY_PATH:$LD_LIBRARY_PATH
 
 backup_if_enabled() {
   [[ $(snapctl get backup-on-refresh) == "enable" ]] && {
-    backupdb || {
+    backupdb.sh || {
       echo "failed to backup rocketchat database before refresh" \
         > $SNAP_COMMON/refresh_$(date +"%Y%m%d.%H%M").log
     }
@@ -17,10 +14,12 @@ backup_if_enabled() {
 }
 
 exec_pre_refresh_scripts() {
-    find $SNAP/migrations -perm -a=+x \
-        -not -path . -not -path .. \
-        -maxdepth 1 -regex 'pre_.*' \
-        -exec {} \; -exec chmod -x {} \;
+  set -e
+  set -o pipefail
+  find $SNAP/migrations -perm -a=+x \
+    -not -path . -not -path .. \
+    -maxdepth 1 -regex 'pre_.*' \
+    -exec {} \; -exec chmod -x {} \;
 }
 
 main() {
