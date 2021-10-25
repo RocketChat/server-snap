@@ -1,0 +1,9 @@
+#! /bin/bash
+
+if [[ -s $SNAP_DATA/Caddyfile ]]; then
+  caddy run --config=$SNAP_DATA/Caddyfile
+else
+  site_url=$(snapctl get siteurl)
+  [[ $site_url =~ ^https:// ]] && caddy reverse-proxy --change-host-header \
+      --from=$site_url --to=http://localhost:$(snapctl get port)
+fi

@@ -1,0 +1,3 @@
+#! /bin/bash
+
+mongod --config=$SNAP_DATA/mongod.conf --fork --syslog

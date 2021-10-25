@@ -1,5 +1,9 @@
 #!/bin/bash
 
+export PATH="$SNAP/bin:$SNAP/usr/bin:$PATH"
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$SNAP/lib:$SNAP/usr/lib:$SNAP/lib/x86_64-linux-gnu:$SNAP/usr/lib/x86_64-linux-gnu"
+export LD_LIBRARY_PATH="$SNAP_LIBRARY_PATH:$LD_LIBRARY_PATH"
+
 function warn {
         echo "[!] ${1}"
         echo "[*] Check ${RESTORE_DIR}/${LOG_NAME} for details."

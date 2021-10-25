@@ -1,26 +1,142 @@
-#!/bin/bash
+#! /bin/bash
 
-# Initialize the CADDY_URL to a default
-snapctl set caddy=disable
+export PATH="$SNAP/bin:$SNAP/usr/bin:$PATH"
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$SNAP/lib:$SNAP/usr/lib:$SNAP/lib/x86_64-linux-gnu:$SNAP/usr/lib/x86_64-linux-gnu"
+export LD_LIBRARY_PATH="$SNAP_LIBRARY_PATH:$LD_LIBRARY_PATH"
 
-# Initialize the PORT to a default
-snapctl set port=3000
+readonly MAX_MONGOD_START_WAIT_SECONDS=1
+readonly MAX_MONGOD_START_RETRY_COUNT=30
+readonly MAX_MONGOD_PRIMARY_WAIT_SECONDS=5
+readonly MAX_MONGOD_PRIMARY_RETRY_COUNT=10
 
-# Initialize the MONGO_URL to a default
-snapctl set mongo-url=mongodb://localhost:27017/parties
+jq() {
+  # 1: key 2: string
+  command jq -r "if has(\"$1\") then .$1 else halt_error(1) end" <<< $2
+}
 
-# Initialize the MONGO_OPLOG_URL to a default
-snapctl set mongo-oplog-url=mongodb://localhost:27017/local
+error() {
+  printf "[ERROR] %s\n" "$*" >&2
+  exit 1
+}
 
-# Initialize the protocol to a default
-snapctl set https=disable
+start_mongod() {
+  mongod \
+    --bind_ip=127.0.0.1 --port=27017 \
+    --dbpath=$SNAP_COMMON \
+    --pidfilepath=$SNAP_COMMON/mongod.pid --journal \
+    --replSet=rs0 \
+    --fork --syslog \
+    \
+    \
+    || error "mongo server start failed"
+}
 
-# Initialize backup to a default
-snapctl set backup-on-refresh=disable
+stop_mongod() {
+  mongod --dbpath=$SNAP_COMMON --shutdown || error "mongo server shutdown failed"
+}
 
-# Initialize snap-refreshing to false
-snapctl set snap-refreshing=false
+mongo() {
+  command mongo --quiet --eval "$1"
+}
 
-# Initialize db-feature-compatibility-version to 3.6
-snapctl set db-feature-compatibility-version=3.6
+mongo_with_error_check() {
+  # 1: command 2: errormsg
+  local output=$(mongo "$1")
+  (( $(jq ok $output) == 1 )) && return
+  jq errmsg $output >&2
+  error ${2?-"$1" command failed}
+}
 
+is_mongo_ready() {
+  for _ in {0..$MAX_MONGOD_START_RETRY_COUNT}; do
+    (( $(mongo 'db.adminCommand({ ping: 1 }).ok') == 1 )) && return
+    sleep $MAX_MONGOD_START_WAIT_SECONDS
+  done
+  error "mongod server start wait timed out"
+}
+
+init_replicaset() {
+  mongo_with_error_check '
+    if (!db.isMaster().ismaster) {
+      JSON.stringify(
+        rs.initiate(
+          {
+            _id: "rs0",
+            members: [
+              {
+                _id: 0,
+                host: "localhost:27017"
+              }
+            ]
+          }
+        )
+      )
+    }' "replicaset initialization failed"
+}
+
+is_primary() {
+  for _ in {0..$MAX_MONGOD_PRIMARY_RETRY_COUNT}; do
+    [[ $(mongo 'db.hello().isWritablePrimary') == "true" ]] && return
+    sleep $MAX_MONGOD_PRIMARY_WAIT_SECONDS
+  done
+  error "primary selection wait timed out"
+}
+
+init_mongod_conf() {
+  cat >$SNAP_DATA/mongod.conf <<EOF
+
+# For documentation of all options, see:
+#   http://docs.mongodb.org/manual/reference/configuration-options/
+
+# processManagement::fork and systemlog::* are ignored
+
+net:
+  bindIp: 127.0.0.1
+  port: 27017
+
+setParameter:
+  enableLocalhostAuthBypass: false
+
+storage:
+  dbPath: $SNAP_COMMON
+  journal:
+    enabled: true
+
+systemLog:
+  destination: syslog
+
+replication:
+  replSetName: rs0
+
+EOF
+}
+
+init_mongod_feature_compatibility_version() {
+  mongo_with_error_check 'JSON.stringify(db.adminCommand({ setFeatureCompatibilityVersion: "5.0" }))'
+}
+
+init_caddy_conf() {
+  touch $SNAP_DATA/Caddyfile
+}
+
+init_default_snap_configurations() {
+  snapctl set port=3000
+  snapctl set mongo-url=mongodb://localhost:27017/parties
+  snapctl set mongo-oplog-url=mongodb://localhost:27017/local
+  snapctl set siteurl=http://localhost:3000
+  snapctl set backup-on-refresh=disable
+}
+
+main() {
+  start_mongod
+  is_mongo_ready
+  init_replicaset
+  is_primary
+  init_mongod_feature_compatibility_version
+  stop_mongod
+  init_mongod_conf
+  init_caddy_conf
+  init_default_snap_configurations
+}
+
+main

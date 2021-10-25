@@ -1,1 +1,7 @@
 *.snap
+tar/
+stage/
+prime/
+parts/
+Dockerfile
+.dockerignore
