@@ -70,8 +70,8 @@ parts:
   mongodb:
     plugin: dump
     source:
-      - on amd64: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu2004-5.0.3.tgz
-      - on arm64: https://fastdl.mongodb.org/linux/mongodb-linux-aarch64-ubuntu2004-5.0.3.tgz
+      - on amd64: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu2004-4.4.10.tgz
+      - on arm64: https://fastdl.mongodb.org/linux/mongodb-linux-aarch64-ubuntu2004-4.4.10.tgz
     stage-packages:
       # For the dependecies:
       # https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu-tarball/#install-mongodb-community-edition

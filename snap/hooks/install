@@ -114,7 +114,7 @@ EOF
 }
 
 init_mongod_feature_compatibility_version() {
-  mongo_with_error_check 'JSON.stringify(db.adminCommand({ setFeatureCompatibilityVersion: "5.0" }))'
+  mongo_with_error_check 'JSON.stringify(db.adminCommand({ setFeatureCompatibilityVersion: "4.4" }))'
 }
 
 init_caddy_conf() {
