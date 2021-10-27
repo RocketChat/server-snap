@@ -1,8 +1,10 @@
 #! /bin/bash
 
+declare -rA ARCH=([amd64]="x86_64" [arm64]="aarch64")
+
 export PATH="$SNAP/usr/sbin:$SNAP/usr/bin:$SNAP/sbin:$SNAP/bin:$PATH"
-export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$SNAP/lib:$SNAP/usr/lib:$SNAP/lib/x86_64-linux-gnu:$SNAP/usr/lib/x86_64-linux-gnu"
-export LD_LIBRARY_PATH=$SNAP_LIBRARY_PATH:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$SNAP/lib:$SNAP/usr/lib:$SNAP/lib/${ARCH[$SNAP_ARCH]}-linux-gnu:$SNAP/usr/lib/${ARCH[$SNAP_ARCH]}-linux-gnu"
+export LD_LIBRARY_PATH="$SNAP_LIBRARY_PATH:$LD_LIBRARY_PATH"
 
 backup_if_enabled() {
   [[ $(snapctl get backup-on-refresh) == "enable" ]] && {
