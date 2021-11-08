@@ -80,9 +80,4 @@ if [ $(cat ${RESTORE_DIR}/${LOG_NAME} | grep $(date +%Y) | wc -l) -lt 24 ]; then
     warn "Little or no data could be restored from the backup!"
 fi
 
-echo "[*] Preparing database..."
-echo "[*] Preparing database with \"mongo parties --eval 'db.repairDatabase()' --verbose\"" &>> "${RESTORE_DIR}/${LOG_NAME}"
-mongo parties --eval "db.repairDatabase()" --verbose &>> "${RESTORE_DIR}/${LOG_NAME}" \
-    || abort "Failed to prepare database for usage!"
-
 echo "[+] Restore completed! Please with 'sudo systemctl restart snap.rocketchat-server.rocketchat-server' to verify."
