@@ -16,12 +16,7 @@ backup_if_enabled() {
 }
 
 exec_pre_refresh_scripts() {
-  set -e
-  set -o pipefail
-  find $SNAP/migrations -perm -a=+x \
-    -not -path . -not -path .. \
-    -maxdepth 1 -regex 'pre_.*' \
-    -exec {} \; -exec chmod -x {} \;
+  true
 }
 
 main() {
