@@ -73,36 +73,18 @@ parts:
       - libcurl4
       - openssl
       - liblzma5
-    filesets:
-      stage-fileset:
-        - -LICENSE-Community.txt
-        - -MPL-2
-        - -THIRD-PARTY-NOTICES
-        - -README
-        - -bin/install_compass
-        - -bin/mongos
-        - -usr/share/doc
-        - -usr/share/man
-    stage: &stage
-      - $stage-fileset
+    stage:
+      - bin/mongod
+      - bin/mongo
 
   mongodb-tools:
     plugin: dump
     source:
       - on amd64: https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2004-x86_64-100.5.0.tgz
       - on arm64: https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2004-arm64-100.5.0.tgz
-    filesets:
-      stage-fileset:
-        - -README.md
-        - -LICENSE.md
-        - -THIRD-PARTY-NOTICES
-        - -bin/bsondump
-        - -bin/mongoexport
-        - -bin/mongoimport
-        - -bin/mongofiles
-        - -bin/mongotop
-        - -bin/mongostat
-    stage: *stage
+    stage:
+      - bin/mongodump
+      - bin/mongorestore
 
   rocketchat:
     plugin: dump
@@ -125,7 +107,7 @@ parts:
 
       snapcraftctl build
     filesets:
-      stage-fileset:
+      excluded:
         - -README
         - -README.md
         - -LICENSE
@@ -134,7 +116,7 @@ parts:
         # not a bug, design choice
         - .node_version.txt
         - "*"
-    stage: *stage
+    stage: [ $excluded ]
 
   caddy:
     plugin: dump
@@ -144,10 +126,10 @@ parts:
     organize:
       caddy: bin/caddy
     filesets:
-      stage-fileset:
+      excluded:
         - -README.md
         - -LICENSE
-    stage: *stage
+    stage: [ $excluded ]
 
   daemons:
     plugin: dump
