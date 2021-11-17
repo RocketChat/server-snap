@@ -11,11 +11,6 @@ readonly MAX_MONGOD_START_RETRY_COUNT=30
 readonly MAX_MONGOD_PRIMARY_WAIT_SECONDS=5
 readonly MAX_MONGOD_PRIMARY_RETRY_COUNT=10
 
-jq() {
-  # 1: key 2: string
-  command jq -r "if has(\"$1\") then .$1 else halt_error(1) end" <<< $2
-}
-
 error() {
   printf "[ERROR] %s\n" "$*" >&2
   exit 1
@@ -44,8 +39,8 @@ mongo() {
 mongo_with_error_check() {
   # 1: command 2: errormsg
   local output=$(mongo "$1")
-  (( $(jq ok $output) == 1 )) && return
-  jq errmsg $output >&2
+  (( $(jq -r .ok <<< $output 2>/dev/null || echo 0) == 1 )) && return
+  jq -r .errmsg <<< $output >&2 2>/dev/null || echo $output >&2
   error ${2?-"$1" command failed}
 }
 
@@ -59,7 +54,6 @@ is_mongo_ready() {
 
 init_replicaset() {
   mongo_with_error_check '
-    if (!db.isMaster().ismaster) {
       JSON.stringify(
         rs.initiate(
           {
@@ -72,8 +66,7 @@ init_replicaset() {
             ]
           }
         )
-      )
-    }' "replicaset initialization failed"
+      )' "replicaset initialization failed"
 }
 
 is_primary() {
