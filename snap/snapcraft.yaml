@@ -153,8 +153,8 @@ parts:
       # for install::jq
       - jq
 
-  # migrations:
-  #   plugin: dump
-  #   source: ./migrations
-  #   organize:
-  #     "*": migrations/
+  migrations:
+    plugin: dump
+    source: ./migrations
+    organize:
+      "*": migrations/

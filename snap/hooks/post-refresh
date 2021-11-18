@@ -7,7 +7,9 @@ export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$SNAP/lib:$SNAP/usr/lib:$SNAP/lib/${ARC
 export LD_LIBRARY_PATH="$SNAP_LIBRARY_PATH:$LD_LIBRARY_PATH"
 
 exec_post_refresh_scripts() {
-    true
+    set -e
+    set -o pipefail
+    find $SNAP/migrations -perm -a=+x -type f -regex '.+/post_.+' -exec {} \;
 }
 
 main() {

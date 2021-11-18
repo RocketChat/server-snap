@@ -103,11 +103,14 @@ systemLog:
 replication:
   replSetName: rs0
 
+processManagement:
+  pidFilePath: $SNAP_COMMON/mongod.pid
+
 EOF
 }
 
 init_mongod_feature_compatibility_version() {
-  mongo_with_error_check 'JSON.stringify(db.adminCommand({ setFeatureCompatibilityVersion: "4.4" }))'
+  mongo_with_error_check 'JSON.stringify(db.adminCommand({ setFeatureCompatibilityVersion: "3.6" }))'
 }
 
 init_caddy_conf() {
