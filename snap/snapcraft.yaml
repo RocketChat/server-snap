@@ -6,7 +6,7 @@ summary: An Open Source Slack Alternative
 description: |
   Have your own Slack like online chat, built with Meteor. https://rocket.chat/
 
-epoch: 2*
+epoch: 1
 
 grade: stable
 confinement: strict
@@ -66,7 +66,7 @@ parts:
     plugin: dump
     source:
       - on amd64: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1804-3.6.23.tgz
-      # - on arm64: https://fastdl.mongodb.org/linux/mongodb-linux-aarch64-ubuntu2004-4.4.10.tgz
+      - on arm64: https://fastdl.mongodb.org/linux/mongodb-linux-aarch64-ubuntu1804-3.6.23.tgz
     stage-packages:
       # For the dependecies:
       # https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu-tarball/#install-mongodb-community-edition
@@ -88,13 +88,20 @@ parts:
   #     - bin/mongodump
   #     - bin/mongorestore
 
+  node:
+    plugin: dump
+    source:
+      - on amd64: https://nodejs.org/download/release/v12.22.7/node-v12.22.7-linux-x64.tar.gz
+      - on arm64: https://nodejs.org/download/release/v12.22.7/node-v12.22.7-linux-arm64.tar.gz
+    stage:
+      - bin
+      - include
+      - lib
+
   rocketchat:
     plugin: dump
     source: https://cdn-download.rocket.chat/build/rocket.chat-$SNAPCRAFT_PROJECT_VERSION.tgz
-    build-snaps:
-      - node/12/stable
-    stage-snaps:
-      - node/12/stable
+    after: [ node ]
     build-packages:
       - build-essential
       - on arm64:

@@ -31,6 +31,7 @@ EOF
 port=$(snapctl get port)
 [[ -z $port ]] && snapctl set port=3000
 url=$(snapctl get caddy-url)
+[[ -z $url ]] && url=$(snapctl get siteurl)
 [[ -n $url ]] && snapctl set siteurl=$url || snapctl set siteurl=http://localhost:$port
 
 [[ -z $(snapctl get mongo-url) ]] && snapctl set mongo-url=mongodb://localhost:27017/parties
