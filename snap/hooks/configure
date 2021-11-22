@@ -11,14 +11,24 @@ error() {
   exit 1
 }
 
-validate_domain() {
+validate_and_set_root_url() {
   local siteurl=$(snap get siteurl)
   [[ $siteurl =~ ^https?://[a-zA-Z0-9\.]+[a-zA-Z0-9]$ ]] || error "\"$siteurl\" is not a valid url"
-  if [[ $siteurl =~ ^https:// ]]; then
-    if [[ $(dig +short A $siteurl) != $(curl ipinfo.io/ip 2>/dev/null) ]]; then
+  [[ $siteurl =~ ^https:// ]] && \
+    [[ $(dig +short A $siteurl) != $(curl ipinfo.io/ip 2>/dev/null) ]] && \
       error "your public ip doesn't match the one resolved for siteurl"
-    fi
-  fi
+  cat > $SNAP_DATA/OVERWRITE_SETTING_Site_Url.env << EOF
+# It is recommended to use snap configuration
+# to update the Site_Url value.
+# sudo snap set rocketchat-server siteurl=${Site_Url}
+
+# You can set it manually from here as well,
+# but remember whenever you change any of the other configurations
+# of this snap, siteurl will switch back to what you set using
+# snap set initially.
+
+OVERWRITE_SETTING_Site_Url=$siteurl
+EOF
 }
 
 validate_port() {
@@ -52,6 +62,7 @@ validate_backup_on_refresh() {
 
 main() {
   validate_port
+  validate_and_set_root_url
   validate_mongo_rocketchat_url
   validate_mongo_oplog_url
   validate_backup_on_refresh
