@@ -12,8 +12,8 @@ error() {
 }
 
 validate_and_set_root_url() {
-  local siteurl=$(snap get siteurl)
-  [[ $siteurl =~ ^https?://[a-zA-Z0-9\.]+[a-zA-Z0-9]$ ]] || error "\"$siteurl\" is not a valid url"
+  local siteurl=$(snapctl get siteurl)
+  [[ $siteurl =~ ^https?://[a-zA-Z0-9\.]*[a-zA-Z0-9]:?([0-9]+)?$ ]] || error "\"$siteurl\" is not a valid url"
   [[ $siteurl =~ ^https:// ]] && \
     [[ $(dig +short A $siteurl) != $(curl ipinfo.io/ip 2>/dev/null) ]] && \
       error "your public ip doesn't match the one resolved for siteurl"
