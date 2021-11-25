@@ -9,7 +9,13 @@ export LD_LIBRARY_PATH="$SNAP_LIBRARY_PATH:$LD_LIBRARY_PATH"
 exec_post_refresh_scripts() {
     set -e
     set -o pipefail
-    find $SNAP/migrations -perm -a=+x -type f -regex '.+/post_.+' -exec {} \;
+    find $SNAP/migrations -executable -type f -regex '.+/post_.+' | while read script; do
+        echo "==== Executing \"${script#$SNAP/migrations/}\" ====" >&2
+        (
+            source $script
+            start
+        )
+    done
 }
 
 main() {

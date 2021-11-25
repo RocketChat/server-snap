@@ -51,5 +51,8 @@ init_default_snap_configurations() {
   snapctl unset db-feature-compatibility-version
 }
 
-[[ -f $SNAP_DATA/mongod.conf ]] || init_mongod_conf
-init_default_snap_configurations
+start() {
+  [[ -f $SNAP_DATA/mongod.conf ]] || init_mongod_conf
+  init_default_snap_configurations
+}
+

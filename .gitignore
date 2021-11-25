@@ -6,3 +6,4 @@ parts/
 Dockerfile
 .dockerignore
 mount/
+*.assert

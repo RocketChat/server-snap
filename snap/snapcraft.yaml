@@ -6,7 +6,7 @@ summary: An Open Source Slack Alternative
 description: |
   Have your own Slack like online chat, built with Meteor. https://rocket.chat/
 
-epoch: 1
+epoch: 1*
 
 grade: stable
 confinement: strict
@@ -15,6 +15,9 @@ plugs:
   network:
 
 apps:
+  bash:
+    command: /bin/bash
+
   rocketchat-mongo:
     command: bin/mongod.service
     daemon: forking
@@ -65,7 +68,9 @@ parts:
   mongodb:
     plugin: dump
     source:
-      - on amd64: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1804-3.6.23.tgz
+      # - on amd64: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1804-3.6.23.tgz
+      # - on amd64: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1804-4.0.27.tgz
+      - on amd64: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1804-4.2.17.tgz
       - on arm64: https://fastdl.mongodb.org/linux/mongodb-linux-aarch64-ubuntu1804-3.6.23.tgz
     stage-packages:
       # For the dependecies:
@@ -73,11 +78,24 @@ parts:
       - libcurl4
       - openssl
       - liblzma5
-    stage:
-      - bin/mongod
-      - bin/mongo
-      - bin/mongodump
-      - bin/mongorestore
+    filesets:
+      excluded:
+        - -LICENSE-Community.txt
+        - -MPL-2
+        - -README
+        - -THIRD-PART-NOTICES
+        - -THIRD-PARTY-NOTICES.gotools
+        - -usr/share
+        - -bin/bsondump
+        - -bin/install_compass
+        - -bin/mongoexport
+        - -bin/mongofiles
+        - -bin/mongoimport
+        - -bin/mongoreplay
+        - -bin/mongos
+        - -bin/mongostat
+        - -bin/mongotop
+    stage: [$excluded]
 
   # mongodb-tools:
   #   plugin: dump
@@ -101,7 +119,7 @@ parts:
   rocketchat:
     plugin: dump
     source: https://cdn-download.rocket.chat/build/rocket.chat-$SNAPCRAFT_PROJECT_VERSION.tgz
-    after: [ node ]
+    after: [node]
     build-packages:
       - build-essential
       - on arm64:
@@ -125,7 +143,7 @@ parts:
         # not a bug, design choice
         - .node_version.txt
         - "*"
-    stage: [ $excluded ]
+    stage: [$excluded]
 
   caddy:
     plugin: dump
@@ -138,7 +156,7 @@ parts:
       excluded:
         - -README.md
         - -LICENSE
-    stage: [ $excluded ]
+    stage: [$excluded]
 
   daemons:
     plugin: dump

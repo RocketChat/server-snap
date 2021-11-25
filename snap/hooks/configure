@@ -13,14 +13,39 @@ error() {
 
 validate_and_set_root_url() {
   local siteurl=$(snapctl get siteurl)
-  [[ $siteurl =~ ^https?://[a-zA-Z0-9\.]*[a-zA-Z0-9]:?([0-9]+)?$ ]] || error "\"$siteurl\" is not a valid url"
-  [[ $siteurl =~ ^https:// ]] && \
-    [[ $(dig +short A ${siteurl#https://}) != $(curl ipinfo.io/ip 2>/dev/null) ]] && \
-      error "your public ip doesn't match the one resolved for siteurl"
+
+  local protocol="^(https?://)"
+  local ip="([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)"
+  local domain="([a-zA-Z0-9\.-]+)"
+  local ip_or_domain="(${ip}|${domain})"
+  local port=":?([0-9]+)?"
+  local path="(/.*)?"
+
+  [[ $siteurl =~ ${protocol}${ip_or_domain}${port}${path} ]]
+  protocol=${BASH_REMATCH[1]}
+  ip=${BASH_REMATCH[3]}
+  domain=${BASH_REMATCH[4]}
+  port=${BASH_REMATCH[5]}
+
+  if [[ -z $ip ]]; then
+    if [[ -n $domain ]]; then
+
+      ip=$(dig +short A $domain)
+      [[ -z $ip ]] && error "\"$siteurl\" is not a valid url"
+
+      [[ $protocol == "https://" ]] && \
+        [[ $ip != $(curl ipinfo.io/ip 2>/dev/null) ]] && \
+          error "your public ip doesn't match the one resolved for siteurl"
+
+    else error "no main root url component found"; fi
+  else (IFS='.'; for byte in $ip; do (( $byte <= 255 )) || error "invalid ip component for siteurl detected"; done); fi
+
+  (( ${port:=1024} >= 1024 )) && (( $port <= 65535 )) || error "port number ($port) not in unreserved range"
+
   cat > $SNAP_DATA/OVERWRITE_SETTING_Site_Url.env << EOF
 # It is recommended to use snap configuration
 # to update the Site_Url value.
-# sudo snap set rocketchat-server siteurl=${Site_Url}
+# sudo snap set rocketchat-server siteurl=\${Site_Url}
 
 # You can set it manually from here as well,
 # but remember whenever you change any of the other configurations
@@ -34,7 +59,7 @@ EOF
 validate_port() {
   local port=$(snapctl get port)
   [[ $port =~ ^[0-9]+$ ]] || error "\"$port\" not a valid number"
-  (( $port > 1024 )) && (( $port <= 65536 )) || error "port number ($port) not in unreserved srange"
+  (( $port >= 1024 )) && (( $port <= 65535 )) || error "port number ($port) not in unreserved range"
 }
 
 _validate_mongo_url() {

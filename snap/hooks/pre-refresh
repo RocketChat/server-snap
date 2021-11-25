@@ -17,8 +17,14 @@ backup_if_enabled() {
 
 exec_pre_refresh_scripts() {
   set -e
-    set -o pipefail
-    find $SNAP/migrations -perm -a=+x -type f -regex '.+/pre_.+' -exec {} \;
+  set -o pipefail
+  find $SNAP/migrations -executable -type f -regex '.+/pre_.+' | while read script; do
+    echo "==== Executing \"${script#$SNAP/migrations/}\" ====" >&2
+    (
+      source $script
+      start
+    )
+  done
 }
 
 main() {
