@@ -36,6 +36,10 @@ mongo() {
   command mongo --quiet --eval "$1"
 }
 
+mongo_version_excluding_patch() {
+    mongo 'db.version().split(".").slice(0, 2).join(".")'
+}
+
 mongo_with_error_check() {
   # 1: command 2: errormsg
   local output=$(mongo "$1")
@@ -110,7 +114,7 @@ EOF
 }
 
 init_mongod_feature_compatibility_version() {
-  mongo_with_error_check 'JSON.stringify(db.adminCommand({ setFeatureCompatibilityVersion: "3.6" }))'
+  mongo_with_error_check "JSON.stringify(db.adminCommand({ setFeatureCompatibilityVersion: \"$(mongo_version_excluding_patch)\" }))"
 }
 
 init_caddy_conf() {
