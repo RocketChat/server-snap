@@ -52,7 +52,8 @@ init_default_snap_configurations() {
 }
 
 start() {
-  [[ -f $SNAP_DATA/mongod.conf ]] || init_mongod_conf
+  [[ -f $SNAP_DATA/mongod.conf ]] && return
+  init_mongod_conf
   init_default_snap_configurations
 }
 
