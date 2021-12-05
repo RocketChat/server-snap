@@ -40,9 +40,10 @@ init_default_snap_configurations() {
   [[ -z $url ]] && url=$(snapctl get siteurl)
   [[ -n $url ]] && snapctl set siteurl=$url || snapctl set siteurl=http://localhost:$port
 
-  [[ -z $(snapctl get mongo-url) ]] && snapctl set mongo-url=mongodb://localhost:27017/parties
-  [[ -z $(snapctl get mongo-oplog-url) ]] && snapctl set mongo-oplog-url=mongodb://localhost:27017/local
-  [[ -z $(snapctl get backup-on-refresh) ]] && snapctl set backup-on-refresh=disable
+  [[ -n $(snapctl get mongo-url) ]] || snapctl set mongo-url=mongodb://localhost:27017/parties
+  [[ -n $(snapctl get mongo-oplog-url) ]] || snapctl set mongo-oplog-url=mongodb://localhost:27017/local
+  [[ -n $(snapctl get backup-on-refresh) ]] || snapctl set backup-on-refresh=disable
+  [[ -n $(snapctl get ignore-errors) ]] || snapctl set ignore-errors=false
 
   snapctl unset snap-refreshing
   snapctl unset caddy
@@ -51,9 +52,19 @@ init_default_snap_configurations() {
   snapctl unset db-feature-compatibility-version
 }
 
+init_extra_environment_variables() {
+  cat>$SNAP_DATA/Rocker.Chat.Extra.env<<EOF
+# DO NOT UPDATE unless you know what you're doing
+XDG_DATA_HOME=\$SNAP/usr/share
+FONTCONFIG_PATH=\$SNAP/etc/fonts/config.d
+FONTCONFIG_FILE=\$SNAP/etc/fonts/fonts.conf
+BABEL_CACHE_DIR=/tmp
+EOF
+}
+
 start() {
-  [[ -f $SNAP_DATA/mongod.conf ]] && return
-  init_mongod_conf
+  [[ -f $SNAP_DATA/Rocket.Chat.Extra.env ]] || init_extra_environment_variables
+  [[ -f $SNAP_DATA/mongod.conf ]] || init_mongod_conf
   init_default_snap_configurations
 }
 

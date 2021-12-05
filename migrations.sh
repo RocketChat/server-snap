@@ -2,7 +2,7 @@
 
 exec 3>&1
 
-files=($(find migrations -executable -type f))
+files=($(find migrations -type f))
 options=()
 index=1
 
@@ -22,14 +22,14 @@ case $? in
 		clear
 		set -x
 		for index in $indexes; do
-			chmod +x migrations/${files[$(($index-1))]}
+			chmod +x ${files[$(($index-1))]}
 		done
 		;;
 	3)
 		clear
 		set -x
 		for index in $indexes; do
-			chmod -x migrations/${files[$(($index-1))]}
+			chmod -x ${files[$(($index-1))]}
 		done
 		;;
 esac

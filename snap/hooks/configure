@@ -1,20 +1,12 @@
 #! /bin/bash
 
-declare -rA ARCH=([amd64]="x86_64" [arm64]="aarch64")
-
-export PATH="$SNAP/usr/sbin:$SNAP/usr/bin:$SNAP/sbin:$SNAP/bin:$PATH"
-export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$SNAP/lib:$SNAP/usr/lib:$SNAP/lib/${ARCH[$SNAP_ARCH]}-linux-gnu:$SNAP/usr/lib/${ARCH[$SNAP_ARCH]}-linux-gnu"
-export LD_LIBRARY_PATH="$SNAP_LIBRARY_PATH:$LD_LIBRARY_PATH"
-
-error() {
-  printf "[ERROR] %s\n" "$*" >&2
-  exit 1
-}
+source $SNAP/helpers/environment.sh
+source $SNAP/helpers/common.sh
 
 validate_and_set_root_url() {
   local siteurl=$(snapctl get siteurl)
 
-  local protocol="^(https?://)"
+  local protocol="^(https?)://"
   local ip="([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)"
   local domain="([a-zA-Z0-9\.-]+)"
   local ip_or_domain="(${ip}|${domain})"
@@ -27,18 +19,20 @@ validate_and_set_root_url() {
   domain=${BASH_REMATCH[4]}
   port=${BASH_REMATCH[5]}
 
+  [[ -n $protocol ]] || error "no protocol found"
+
   if [[ -z $ip ]]; then
     if [[ -n $domain ]]; then
 
       ip=$(dig +short A $domain)
       [[ -z $ip ]] && error "\"$siteurl\" is not a valid url"
 
-      [[ $protocol == "https://" ]] && \
+      [[ $protocol == "https" ]] && \
         [[ $ip != $(curl ipinfo.io/ip 2>/dev/null) ]] && \
           error "your public ip doesn't match the one resolved for siteurl"
 
     else error "no main root url component found"; fi
-  else (IFS='.'; for byte in $ip; do (( $byte <= 255 )) || error "invalid ip component for siteurl detected"; done); fi
+  else (IFS='.'; for byte in $ip; do (( $byte <= 255 )) || abort; done) || error "invalid ip component for siteurl detected"; fi
 
   (( ${port:=1024} >= 1024 )) && (( $port <= 65535 )) || error "port number ($port) not in unreserved range"
 
@@ -82,7 +76,11 @@ validate_mongo_oplog_url() {
 }
 
 validate_backup_on_refresh() {
-  [[ $(snapctl get backup-on-refresh) =~ ^(enable)|(disable)$ ]] || error "value must be either \"enable\" or \"disable\""
+  case $(snapctl get backup-on-refresh) in enable|disable) return ;; *) error "value must be either \"enable\" or \"disable\"" ;; esac
+}
+
+validate_ignore_errors() {
+  case $(snapctl get ignore-errors) in true|false) return ;; *) error "value must be either \"true\" or \"false\"" ;; esac
 }
 
 main() {
@@ -91,6 +89,7 @@ main() {
   validate_mongo_rocketchat_url
   validate_mongo_oplog_url
   validate_backup_on_refresh
+  validate_ignore_errors
 }
 
 main

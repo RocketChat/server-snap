@@ -1,60 +1,6 @@
-#! /bin/bash
+#!/bin/bash
 
-declare -rA ARCH=([amd64]="x86_64" [arm64]="aarch64")
-
-export PATH="$SNAP/usr/sbin:$SNAP/usr/bin:$SNAP/sbin:$SNAP/bin:$PATH"
-export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$SNAP/lib:$SNAP/usr/lib:$SNAP/lib/${ARCH[$SNAP_ARCH]}-linux-gnu:$SNAP/usr/lib/${ARCH[$SNAP_ARCH]}-linux-gnu"
-export LD_LIBRARY_PATH="$SNAP_LIBRARY_PATH:$LD_LIBRARY_PATH"
-
-readonly MAX_MONGOD_START_WAIT_SECONDS=1
-readonly MAX_MONGOD_START_RETRY_COUNT=30
-readonly MAX_MONGOD_PRIMARY_WAIT_SECONDS=5
-readonly MAX_MONGOD_PRIMARY_RETRY_COUNT=10
-
-error() {
-  printf "[ERROR] %s\n" "$*" >&2
-  exit 1
-}
-
-start_mongod() {
-  mongod \
-    --bind_ip=127.0.0.1 --port=27017 \
-    --dbpath=$SNAP_COMMON \
-    --pidfilepath=$SNAP_COMMON/mongod.pid --journal \
-    --replSet=rs0 \
-    --fork --syslog \
-    \
-    \
-    || error "mongo server start failed"
-}
-
-stop_mongod() {
-  mongod --dbpath=$SNAP_COMMON --shutdown || error "mongo server shutdown failed"
-}
-
-mongo() {
-  command mongo --quiet --eval "$1"
-}
-
-mongo_version_excluding_patch() {
-    mongo 'db.version().split(".").slice(0, 2).join(".")'
-}
-
-mongo_with_error_check() {
-  # 1: command 2: errormsg
-  local output=$(mongo "$1")
-  (( $(jq -r .ok <<< $output 2>/dev/null || echo 0) == 1 )) && return
-  jq -r .errmsg <<< $output >&2 2>/dev/null || echo $output >&2
-  error ${2?-"$1" command failed}
-}
-
-is_mongo_ready() {
-  for _ in $(seq 0 $MAX_MONGOD_START_RETRY_COUNT); do
-    (( $(mongo 'db.adminCommand({ ping: 1 }).ok') == 1 )) && return
-    sleep $MAX_MONGOD_START_WAIT_SECONDS
-  done
-  error "mongod server start wait timed out"
-}
+source $SNAP/helpers/mongo.sh
 
 init_replicaset() {
   mongo_with_error_check '
@@ -71,14 +17,6 @@ init_replicaset() {
           }
         )
       )' "replicaset initialization failed"
-}
-
-is_primary() {
-  for _ in $(seq 0 $MAX_MONGOD_PRIMARY_RETRY_COUNT); do
-    [[ $(mongo 'db.hello().isWritablePrimary') == "true" ]] && return
-    sleep $MAX_MONGOD_PRIMARY_WAIT_SECONDS
-  done
-  error "primary selection wait timed out"
 }
 
 init_mongod_conf() {
@@ -112,11 +50,6 @@ processManagement:
 
 EOF
 }
-
-init_mongod_feature_compatibility_version() {
-  mongo_with_error_check "JSON.stringify(db.adminCommand({ setFeatureCompatibilityVersion: \"$(mongo_version_excluding_patch)\" }))"
-}
-
 init_caddy_conf() {
   touch $SNAP_DATA/Caddyfile
 }
@@ -127,18 +60,34 @@ init_default_snap_configurations() {
   snapctl set mongo-oplog-url=mongodb://localhost:27017/local
   snapctl set siteurl=http://localhost:3000
   snapctl set backup-on-refresh=disable
+  snapctl set ignore-errors=false
+}
+
+init_mongod_feature_compatibility_version() {
+  set_feature_compatibility $(mongo_version_excluding_patch)
+}
+
+init_extra_environment_variables() {
+  cat>$SNAP_DATA/Rocker.Chat.Extra.env<<EOF
+# DO NOT UPDATE unless you know what you're doing
+XDG_DATA_HOME=\$SNAP/usr/share
+FONTCONFIG_PATH=\$SNAP/etc/fonts/config.d
+FONTCONFIG_FILE=\$SNAP/etc/fonts/fonts.conf
+BABEL_CACHE_DIR=/tmp
+EOF
 }
 
 main() {
+  init_default_snap_configurations
+  init_caddy_conf
+  init_mongod_conf
   start_mongod
   is_mongo_ready
   init_replicaset
   is_primary
   init_mongod_feature_compatibility_version
   stop_mongod
-  init_mongod_conf
-  init_caddy_conf
-  init_default_snap_configurations
+  init_extra_environment_variables
 }
 
 main

@@ -1,4 +1,4 @@
-name: rocketchat-server
+name: rocketchat-server-development
 title: Rocket.Chat Server
 base: core18
 version: 4.1.2
@@ -16,22 +16,19 @@ plugs:
 
 apps:
   bash:
-    command: /bin/bash
-
+    command: bash
   rocketchat-mongo:
-    command: bin/mongod.service
+    command: bin/start_mongod.sh
+    environment: { LC_ALL: C }
+    stop-command: bin/stop_mongod.sh
     daemon: forking
     plugs: [network-bind]
 
   rocketchat-server:
-    command: bin/rocketchat.service
+    command: bin/start_rocketchat.sh
+    stop-command: bin/stop_rocketchat.sh
     environment:
-      XDG_DATA_HOME: $SNAP/usr/share
-      FONTCONFIG_PATH: $SNAP/etc/fonts/config.d
-      FONTCONFIG_FILE: $SNAP/etc/fonts/fonts.conf
       DEPLOY_METHOD: snap
-      NODE_ENV: production
-      BABEL_CACHE_DIR: /tmp
       LC_ALL: C
     daemon: simple
     after: [rocketchat-mongo]
@@ -40,26 +37,23 @@ apps:
       - removable-media
 
   rocketchat-caddy:
-    command: bin/caddy.service
-    environment:
-      LC_ALL: C
+    command: bin/start_caddy.sh
+    environment: { LC_ALL: C }
     daemon: simple
+    install-mode: disable
     plugs: [network-bind]
 
   mongo:
     command: bin/mongo
-    environment:
-      LC_ALL: C
+    environment: { LC_ALL: C }
 
   backupdb:
     command: bin/backupdb.sh
-    environment:
-      LC_ALL: C
+    environment: { LC_ALL: C }
 
   restoredb:
     command: bin/restoredb.sh
-    environment:
-      LC_ALL: C
+    environment: { LC_ALL: C }
 
 hooks:
   install: { plugs: [network-bind] }
@@ -69,8 +63,8 @@ parts:
     plugin: dump
     source:
       # - on amd64: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1804-3.6.23.tgz
-      # - on amd64: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1804-4.0.27.tgz
-      - on amd64: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1804-4.2.17.tgz
+      - on amd64: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1804-4.0.27.tgz
+      # - on amd64: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1804-4.2.17.tgz
       - on arm64: https://fastdl.mongodb.org/linux/mongodb-linux-aarch64-ubuntu1804-3.6.23.tgz
     stage-packages:
       # For the dependecies:
@@ -145,13 +139,26 @@ parts:
         - "*"
     stage: [$excluded]
 
-  caddy:
+  caddy2:
     plugin: dump
     source:
       - on amd64: https://github.com/caddyserver/caddy/releases/download/v2.4.3/caddy_2.4.3_linux_amd64.tar.gz
       - on arm64: https://github.com/caddyserver/caddy/releases/download/v2.4.3/caddy_2.4.3_linux_arm64.tar.gz
     organize:
-      caddy: bin/caddy
+      caddy: bin/caddy2
+    filesets:
+      excluded:
+        - -README.md
+        - -LICENSE
+    stage: [$excluded]
+
+  caddy1:
+    plugin: dump
+    source:
+      - on amd64: https://github.com/caddyserver/caddy/releases/download/v1.0.4/caddy_v1.0.4_linux_amd64.tar.gz
+      - on arm64: https://github.com/caddyserver/caddy/releases/download/v1.0.4/caddy_v1.0.4_linux_arm64.tar.gz
+    organize:
+      caddy: bin/caddy1
     filesets:
       excluded:
         - -README.md
@@ -183,3 +190,9 @@ parts:
     source: ./migrations
     organize:
       "*": migrations/
+
+  helpers:
+    plugin: dump
+    source: ./helpers/
+    organize:
+      "*": helpers/
