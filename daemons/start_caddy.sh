@@ -3,7 +3,7 @@
 source $SNAP/helpers/caddy.sh
 
 if [[ -s $SNAP_DATA/Caddyfile ]]; then
-  # Prioritize caddy v2, if fails, try caddy v1
+  # Prioritize v2 over v1
   start_caddy_v2_with_config || start_caddy_v1_with_config
 else
   site_url=$(snapctl get siteurl)

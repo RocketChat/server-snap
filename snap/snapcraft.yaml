@@ -1,4 +1,4 @@
-name: rocketchat-server-development
+name: rocketchat-server
 title: Rocket.Chat Server
 base: core18
 version: 4.1.2
@@ -6,7 +6,7 @@ summary: An Open Source Slack Alternative
 description: |
   Have your own Slack like online chat, built with Meteor. https://rocket.chat/
 
-epoch: 1*
+epoch: 2*
 
 grade: stable
 confinement: strict
@@ -15,8 +15,6 @@ plugs:
   network:
 
 apps:
-  bash:
-    command: bash
   rocketchat-mongo:
     command: bin/start_mongod.sh
     environment: { LC_ALL: C }
@@ -62,8 +60,8 @@ parts:
   mongodb:
     plugin: dump
     source:
-      # - on amd64: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1804-3.6.23.tgz
-      - on amd64: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1804-4.0.27.tgz
+      - on amd64: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1804-3.6.23.tgz
+      # - on amd64: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1804-4.0.27.tgz
       # - on amd64: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1804-4.2.17.tgz
       - on arm64: https://fastdl.mongodb.org/linux/mongodb-linux-aarch64-ubuntu1804-3.6.23.tgz
     stage-packages:
@@ -77,7 +75,7 @@ parts:
         - -LICENSE-Community.txt
         - -MPL-2
         - -README
-        - -THIRD-PART-NOTICES
+        - -THIRD-PARTY-NOTICES
         - -THIRD-PARTY-NOTICES.gotools
         - -usr/share
         - -bin/bsondump
@@ -161,8 +159,10 @@ parts:
       caddy: bin/caddy1
     filesets:
       excluded:
-        - -README.md
-        - -LICENSE
+        - -README.txt
+        - -LICENSES.txt
+        - -CHANGES.txt
+        - -init
     stage: [$excluded]
 
   daemons:
