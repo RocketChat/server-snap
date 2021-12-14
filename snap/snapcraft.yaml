@@ -1,7 +1,7 @@
 name: rocketchat-server
 title: Rocket.Chat Server
 base: core18
-version: 4.1.2
+version: 4.2.2
 summary: An Open Source Slack Alternative
 description: |
   Have your own Slack like online chat, built with Meteor. https://rocket.chat/
@@ -11,13 +11,10 @@ epoch: 3*
 grade: stable
 confinement: strict
 
-plugs:
-  network:
-
 apps:
   rocketchat-mongo:
     command: bin/start_mongod.sh
-    environment: { LC_ALL: C }
+    environment: {LC_ALL: C}
     stop-command: bin/stop_mongod.sh
     daemon: forking
     plugs: [network-bind]
@@ -31,30 +28,39 @@ apps:
     daemon: simple
     after: [rocketchat-mongo]
     plugs:
+      - network
       - network-bind
       - removable-media
 
   rocketchat-caddy:
     command: bin/start_caddy.sh
-    environment: { LC_ALL: C }
+    environment: {LC_ALL: C}
     daemon: simple
     install-mode: disable
-    plugs: [network-bind]
+    plugs:
+      - network
+      - network-bind
 
   mongo:
     command: bin/mongo
-    environment: { LC_ALL: C }
+    environment: {LC_ALL: C}
 
   backupdb:
     command: bin/backupdb.sh
-    environment: { LC_ALL: C }
+    environment: {LC_ALL: C}
 
   restoredb:
     command: bin/restoredb.sh
-    environment: { LC_ALL: C }
+    environment: {LC_ALL: C}
 
 hooks:
-  install: { plugs: [network-bind] }
+  install: &hook_plugs
+    plugs:
+      - network
+      - network-bind
+  pre-refresh: *hook_plugs
+  post-refresh: *hook_plugs
+  configure: *hook_plugs
 
 parts:
   mongodb:
@@ -134,10 +140,10 @@ parts:
         # BUG - need to fix upstream
         # not a bug, design choice
         - .node_version.txt
-        - "*"
+        - '*'
     stage: [$excluded]
 
-  caddy2:
+  caddyv2:
     plugin: dump
     source:
       - on amd64: https://github.com/caddyserver/caddy/releases/download/v2.4.3/caddy_2.4.3_linux_amd64.tar.gz
@@ -150,7 +156,7 @@ parts:
         - -LICENSE
     stage: [$excluded]
 
-  caddy1:
+  caddyv1:
     plugin: dump
     source:
       - on amd64: https://github.com/caddyserver/caddy/releases/download/v1.0.4/caddy_v1.0.4_linux_amd64.tar.gz
@@ -165,17 +171,26 @@ parts:
         - -init
     stage: [$excluded]
 
+  yq:
+    plugin: dump
+    source:
+      - on amd64: https://github.com/mikefarah/yq/releases/download/v4.16.1/yq_linux_amd64.tar.gz
+      - on arm64: https://github.com/mikefarah/yq/releases/download/v4.16.1/yq_linux_arm64.tar.gz
+    organize:
+      'yq_linux_*': bin/yq
+    stage: [bin]
+
   daemons:
     plugin: dump
-    source: "./daemons"
+    source: ./daemons
     organize:
-      "*": "bin/"
+      '*': bin/
 
   commands:
     plugin: dump
-    source: "./commands"
+    source: ./commands
     organize:
-      "*": "bin/"
+      '*': bin/
 
   script-dependecies:
     plugin: nil
@@ -189,10 +204,10 @@ parts:
     plugin: dump
     source: ./migrations
     organize:
-      "*": migrations/
+      '*': migrations/
 
   helpers:
     plugin: dump
     source: ./helpers/
     organize:
-      "*": helpers/
+      '*': helpers/

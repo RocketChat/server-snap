@@ -2,6 +2,8 @@
 
 source $SNAP/helpers/common.sh
 source $SNAP/helpers/environment.sh
+source $SNAP/helpers/mongo.sh
+source $SNAP/helpers/misc.sh
 
 start_rocketchat() {
     init_user_environment_variables
@@ -24,3 +26,13 @@ start_rocketchat() {
 stop_rocketchat() {
     pkill -9 -F $SNAP_COMMON/rocketchat.pid
 }
+
+get_current_migration() {
+    mongo_eval "db.getSiblingDb('parties').migrations.findOne().version"
+}
+
+migrate_to_latest() {
+    export MIGRATION_VERSION=latest,exit
+    start_rocketchat
+}
+

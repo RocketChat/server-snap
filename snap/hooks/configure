@@ -24,7 +24,7 @@ validate_and_set_root_url() {
   if [[ -z $ip ]]; then
     if [[ -n $domain ]]; then
 
-      ip=$(dig +short A $domain)
+      ip=$(get_ip $domain)
       [[ -z $ip ]] && error "\"$siteurl\" is not a valid url"
 
       [[ $protocol == "https" ]] && \
@@ -80,7 +80,7 @@ validate_backup_on_refresh() {
 }
 
 validate_ignore_errors() {
-  case $(snapctl get ignore-errors) in true|false) return ;; *) error "value must be either \"true\" or \"false\"" ;; esac
+  case $(snapctl get ignore-snap-errors) in true|false) return ;; *) error "value must be either \"true\" or \"false\"" ;; esac
 }
 
 main() {

@@ -4,15 +4,26 @@ abort() { exit 1; }
 
 error() {
   printf "[ERROR] %s\n" "$*" >&2
-  [[ $(snapctl get ignore-errors) == "true" ]] || abort
+  [[ $(snapctl get ignore-snap-errors) == "true" ]] || abort
 }
 
-init_user_environment_variables() {
-  # Check both $SNAP_COMMON and $SNAP_DATA
-  # I was hoping this to work without a for loop like this
-  # find $SNAP_COMMON $SNAP_DATA -maxdepth 1 -regex '.*\.env$' \
-  #  | while read filename; do source $filename; done
-  set -a
-  for filename in $(find $SNAP_COMMON $SNAP_DATA -maxdepth 1 -regex '.*\.env$'); do source $filename; done
-  set +a
+_jq() {
+  # better_jq_* key string extra_options
+  local argv=("$@")
+  local key=${1?}
+  local string=${2?}
+  local extra_options=("${argv[@]:2}")
+
+
+  local jq_args="fromjson? | .$key // "
+
+  # [0]=_jq [1]=better_jq_*
+  jq_args+=${FUNCNAME[1]#better_jq_}
+
+  printf "$string" | jq -r -R "$jq_args" "${extra_options[@]}"
 }
+
+better_jq_empty() { _jq "$@"; }
+better_jq_.() { _jq "$@"; }
+
+get_ip() { getent hosts ${1?} | awk '{ print $1 }'; }

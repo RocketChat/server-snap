@@ -1,6 +1,7 @@
 #! /bin/bash
 
 source $SNAP/helpers/environment.sh
+source $SNAP/helpers/common.sh
 
 exec_post_refresh_scripts() {
     find $SNAP/migrations -executable -type f -regex '.+/post_.+' | while read script; do (source $script; start) || error "post refresh migration \"${script#$SNAP/migrations/*post_}\" run failed"; done

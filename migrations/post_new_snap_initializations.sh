@@ -43,13 +43,15 @@ init_default_snap_configurations() {
   [[ -n $(snapctl get mongo-url) ]] || snapctl set mongo-url=mongodb://localhost:27017/parties
   [[ -n $(snapctl get mongo-oplog-url) ]] || snapctl set mongo-oplog-url=mongodb://localhost:27017/local
   [[ -n $(snapctl get backup-on-refresh) ]] || snapctl set backup-on-refresh=disable
-  [[ -n $(snapctl get ignore-errors) ]] || snapctl set ignore-errors=false
+
+  snapctl set ignore-snap-errors=false
 
   snapctl unset snap-refreshing
   snapctl unset caddy
   snapctl unset caddy-url
   snapctl unset https
   snapctl unset db-feature-compatibility-version
+  snapctl unset ignore-errors
 }
 
 init_extra_environment_variables() {

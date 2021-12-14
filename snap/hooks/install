@@ -3,7 +3,7 @@
 source $SNAP/helpers/mongo.sh
 
 init_replicaset() {
-  mongo_with_error_check '
+  mongo_eval_with_error_check '
       JSON.stringify(
         rs.initiate(
           {
@@ -55,16 +55,30 @@ init_caddy_conf() {
 }
 
 init_default_snap_configurations() {
-  snapctl set port=3000
-  snapctl set mongo-url=mongodb://localhost:27017/parties
-  snapctl set mongo-oplog-url=mongodb://localhost:27017/local
-  snapctl set siteurl=http://localhost:3000
-  snapctl set backup-on-refresh=disable
-  snapctl set ignore-errors=false
+  port=$(snapctl get port)
+  [[ -z $port ]] && snapctl set port=3000
+
+  url=$(snapctl get caddy-url)
+  [[ -z $url ]] && url=$(snapctl get siteurl)
+  [[ -n $url ]] && snapctl set siteurl=$url || snapctl set siteurl=http://localhost:$port
+
+  [[ -n $(snapctl get mongo-url) ]] || snapctl set mongo-url=mongodb://localhost:27017/parties
+  [[ -n $(snapctl get mongo-oplog-url) ]] || snapctl set mongo-oplog-url=mongodb://localhost:27017/local
+  [[ -n $(snapctl get backup-on-refresh) ]] || snapctl set backup-on-refresh=disable
+
+  snapctl set ignore-snap-errors=false
+
+  snapctl unset snap-refreshing
+  snapctl unset caddy
+  snapctl unset caddy-url
+  snapctl unset https
+  snapctl unset db-feature-compatibility-version
+  snapctl unset ignore-errors
 }
 
+
 init_mongod_feature_compatibility_version() {
-  set_feature_compatibility $(mongo_version_excluding_patch)
+  set_feature_compatibility $(mongod_version_excluding_patch)
 }
 
 init_extra_environment_variables() {
@@ -82,9 +96,9 @@ main() {
   init_caddy_conf
   init_mongod_conf
   start_mongod
-  is_mongo_ready
+  is_mongod_ready
   init_replicaset
-  is_primary
+  is_mongod_primary
   init_mongod_feature_compatibility_version
   stop_mongod
   init_extra_environment_variables

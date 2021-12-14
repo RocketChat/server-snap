@@ -1,6 +1,7 @@
 #! /bin/bash
 
 source $SNAP/helpers/environment.sh
+source $SNAP/helpers/common.sh
 
 backup_if_enabled() {
   [[ $(snapctl get backup-on-refresh) == "enable" ]] && {
