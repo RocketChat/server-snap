@@ -134,7 +134,7 @@ parts:
         rm npm/node_modules/sharp/vendor -rf
         wget -qO vips.tar.gz https://github.com/libvips/libvips/releases/download/v$libvips_version/vips-$libvips_version.tar.gz
         tar xzf vips.tar.gz
-        (cd vips; ./configure && make && make install)
+        (cd vips-$libvps_version; ./configure && make && make install)
       fi && \
       \
       NODE_ENV=production npm i --unsafe-perm
