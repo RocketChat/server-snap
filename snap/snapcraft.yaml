@@ -119,7 +119,7 @@ parts:
     source: https://cdn-download.rocket.chat/build/rocket.chat-$SNAPCRAFT_PROJECT_VERSION.tgz
     after: [node]
     build-environment:
-      libvips_version: 8.12.1
+      - libvips_version: 8.12.1
     build-packages:
       - build-essential
       - on arm64:
