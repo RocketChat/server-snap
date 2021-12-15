@@ -73,7 +73,6 @@ init_default_snap_configurations() {
   snapctl unset caddy-url
   snapctl unset https
   snapctl unset db-feature-compatibility-version
-  snapctl unset ignore-errors
 }
 
 
