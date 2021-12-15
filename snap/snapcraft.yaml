@@ -126,13 +126,13 @@ parts:
           - autoconf
           - automake
           - libtool
-          - curl
+          - wget
     override-build: |
       cd programs/server
 
       if [ "$SNAP_ARCH" = "arm64" ]; then
         rm npm/node_modules/sharp/vendor -rf
-        curl -fsSo vips.tar.gz https://github.com/libvips/libvips/releases/download/v$libvips_version/vips-$libvips_version.tar.gz
+        wget -qO vips.tar.gz https://github.com/libvips/libvips/releases/download/v$libvips_version/vips-$libvips_version.tar.gz
         tar xzf vips.tar.gz
         (cd vips; ./configure && make && make install)
       fi && \
