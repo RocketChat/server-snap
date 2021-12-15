@@ -4,7 +4,7 @@ abort() { exit 1; }
 
 error() {
   printf "[ERROR] %s\n" "$*" >&2
-  [[ $(snapctl get ignore-snap-errors) == "true" ]] || abort
+  [[ $(snapctl get Ignore_Snap_Errors) == "true" ]] || abort
 }
 
 _jq() {

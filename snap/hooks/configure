@@ -80,7 +80,7 @@ validate_backup_on_refresh() {
 }
 
 validate_ignore_errors() {
-  case $(snapctl get ignore-snap-errors) in true|false) return ;; *) error "value must be either \"true\" or \"false\"" ;; esac
+  case $(snapctl get Ignore_Snap_Errors) in true|false) return ;; *) error "value must be either \"true\" or \"false\"" ;; esac
 }
 
 main() {
