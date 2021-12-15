@@ -118,20 +118,23 @@ parts:
     plugin: dump
     source: https://cdn-download.rocket.chat/build/rocket.chat-$SNAPCRAFT_PROJECT_VERSION.tgz
     after: [node]
+    build-environment:
+      libvips_version: 8.12.1
     build-packages:
       - build-essential
       - on arm64:
           - autoconf
           - automake
           - libtool
+          - curl
     override-build: |
       cd programs/server
 
       if [ "$SNAP_ARCH" = "arm64" ]; then
         rm npm/node_modules/sharp/vendor -rf
-        wget https://github.com/libvips/libvips/releases/download/v8.12.1/vips-8.12.1.tar.gz
-        tar xzf vips-8.12.1.tar.gz
-        (cd vips-8.12.2; ./configure && make && make install)
+        curl -fsSo vips.tar.gz https://github.com/libvips/libvips/releases/download/v$libvips_version/vips-$libvips_version.tar.gz
+        tar xzf vips.tar.gz
+        (cd vips; ./configure && make && make install)
       fi && \
       \
       NODE_ENV=production npm i --unsafe-perm

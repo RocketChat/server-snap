@@ -7,3 +7,4 @@ Dockerfile
 .dockerignore
 mount/
 *.assert
+*.xdelta3*
