@@ -127,7 +127,13 @@ parts:
     override-build: |
       cd programs/server
 
-      [ "$SNAP_ARCH" = "arm64" ] && rm npm/node_modules/sharp/vendor -rf
+      if [ "$SNAP_ARCH" = "arm64" ]; then
+        rm npm/node_modules/sharp/vendor -rf
+        wget https://github.com/libvips/libvips/releases/download/v8.12.1/vips-8.12.1.tar.gz
+        tar xzf vips-8.12.1.tar.gz
+        (cd vips-8.12.2; ./configure && make && make install)
+      fi && \
+      \
       NODE_ENV=production npm i --unsafe-perm
 
       snapcraftctl build
