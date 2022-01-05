@@ -2,6 +2,7 @@
 
 source $SNAP/helpers/environment.sh
 source $SNAP/helpers/common.sh
+source $SNAP/helpers/misc.sh
 
 backup_if_enabled() {
   [[ $(snapctl get backup-on-refresh) == "enable" ]] && {
@@ -13,7 +14,13 @@ backup_if_enabled() {
 }
 
 exec_pre_refresh_scripts() {
-  find $SNAP/migrations -executable -type f -regex '.+/pre_.+' | while read script; do (source $script; start) || error "pre refresh migration \"${script#$SNAP/migrations/*pre_}\" run failed"; done
+  local scripts=()
+  # why do it the hard way?
+  # why should i answer *you*?
+  # this is *my* script, 👿
+  for script in `get_migrations`; do [[ $(awk -F/ '{ print $NF }' <<< $script) =~ ^([0-9]+)[^0-9a-zA-Z\/]{1}.+ ]] && scripts+=([$(( 10#${BASH_REMATCH[1]} ))]=$script); done
+  # scripts should now be in order
+  for script in ${scripts[@]}; do (source $script; start) || error "pre refresh migration script ${script#$SNAP/migrations/$dirname/}"; done
 }
 
 main() {

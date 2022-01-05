@@ -1,10 +1,15 @@
 #! /bin/bash
 
+
 source $SNAP/helpers/environment.sh
 source $SNAP/helpers/common.sh
+source $SNAP/helpers/misc.sh
 
 exec_post_refresh_scripts() {
-    find $SNAP/migrations -executable -type f -regex '.+/post_.+' | while read script; do (source $script; start) || error "post refresh migration \"${script#$SNAP/migrations/*post_}\" run failed"; done
+    local scripts=()
+    for script in `get_migrations`; do [[ $(awk -F/ '{ print $NF }' <<< $script) =~ ^([0-9]+)[^0-9a-zA-Z\/]{1}.+ ]] && scripts+=([$(( 10#${BASH_REMATCH[1]} ))]=$script); done
+    # scripts should now be in order
+    for script in ${scripts[@]}; do (source $script; start) || error "post refresh migration script ${script#$SNAP/migrations/$dirname/}"; done
 }
 
 main() {

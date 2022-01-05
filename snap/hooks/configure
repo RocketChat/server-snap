@@ -27,9 +27,9 @@ validate_and_set_root_url() {
       ip=$(get_ip $domain)
       [[ -z $ip ]] && error "\"$siteurl\" is not a valid url"
 
-      [[ $protocol == "https" ]] && \
-        [[ $ip != $(curl ipinfo.io/ip 2>/dev/null) ]] && \
-          error "your public ip doesn't match the one resolved for siteurl"
+      # [[ $protocol == "https" ]] && \
+      #   [[ $ip != $(curl ipinfo.io/ip 2>/dev/null) ]] && \
+      #     error "your public ip doesn't match the one resolved for siteurl"
 
     else error "no main root url component found"; fi
   else (IFS='.'; for byte in $ip; do (( $byte <= 255 )) || abort; done) || error "invalid ip component for siteurl detected"; fi

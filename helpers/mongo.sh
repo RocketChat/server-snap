@@ -1,7 +1,6 @@
 #! /bin/bash
 
 source $SNAP/helpers/common.sh
-source $SNAP/helpers/environment.sh
 
 MAX_MONGOD_START_WAIT_SECONDS=1
 MAX_MONGOD_START_RETRY_COUNT=30
@@ -11,8 +10,8 @@ MAX_MONGOD_PRIMARY_RETRY_COUNT=10
 is_mongod_running() {
   local pid_file
   if ! pid_file=$(yq -e e .processManagement.pidFilePath $SNAP_DATA/mongod.conf); then
-    test -n $(pgrep -xf "mongod --config=$SNAP_DATA/mongod.conf --fork --syslog")
-  else test -d /proc/$(cat $pid_file); fi
+    [[ -n $(pgrep -xf "mongod --config=$SNAP_DATA/mongod.conf --fork --syslog") ]]
+  else [[ -d /proc/$(cat $pid_file) ]]; fi
 }
 
 start_mongod() {

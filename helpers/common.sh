@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source $SNAP/helpers/environment.sh
+
 abort() { exit 1; }
 
 error() {
@@ -27,3 +29,5 @@ better_jq_empty() { _jq "$@"; }
 better_jq_.() { _jq "$@"; }
 
 get_ip() { getent hosts ${1?} | awk '{ print $1 }'; }
+
+empty() { [[ -z $1 ]]; }

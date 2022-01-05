@@ -32,6 +32,24 @@ processManagement:
 EOF
 }
 
+add_siteurl_environment_variable() {
+  local siteurl=$(snapctl get siteurl)
+  if [[ $siteurl =~ ^https:// ]]; then
+    cat > $SNAP_DATA/OVERWRITE_SETTING_Site_Url.env << EOF
+# It is recommended to use snap configuration
+# to update the Site_Url value.
+# sudo snap set rocketchat-server siteurl=\${Site_Url}
+
+# You can set it manually from here as well,
+# but remember whenever you change any of the other configurations
+# of this snap, siteurl will switch back to what you set using
+# snap set initially.
+
+OVERWRITE_SETTING_Site_Url=$siteurl
+EOF
+  fi
+}
+
 init_default_snap_configurations() {
   port=$(snapctl get port)
   [[ -z $port ]] && snapctl set port=3000
@@ -44,7 +62,7 @@ init_default_snap_configurations() {
   [[ -n $(snapctl get mongo-oplog-url) ]] || snapctl set mongo-oplog-url=mongodb://localhost:27017/local
   [[ -n $(snapctl get backup-on-refresh) ]] || snapctl set backup-on-refresh=disable
 
-  snapctl set ignore-errors=false
+  [[ -n $(snapctl get ignore-errors) ]] || snapctl set ignore-errors=false
 
   snapctl unset snap-refreshing
   snapctl unset caddy
@@ -67,5 +85,6 @@ start() {
   [[ -f $SNAP_DATA/Rocket.Chat.Extra.env ]] || init_extra_environment_variables
   [[ -f $SNAP_DATA/mongod.conf ]] || init_mongod_conf
   init_default_snap_configurations
+  add_siteurl_environment_variable
 }
 
