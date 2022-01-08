@@ -1,32 +1,40 @@
 #!/bin/bash
 
-if (( $EUID )); then
-    echo "[-] This task must be run with 'sudo'." >&2
+if [[ ${EUID} != 0 ]]; then
+    echo "[-] This task must be run with 'sudo'."
     exit 1
 fi
 
-if [[ -f $SNAP_COMMON/rocketchat.pid ]]; then
-    echo "[-] Please shutdown Rocket.Chat first to get a clean backup" >&2
-    echo "[-] Use 'sudo snap stop rocketchat-server.rocketchat-server'" >&2
+if $(ps x | grep "node ${SNAP}/main.js" | grep -qv "grep"); then
+    echo "[-] Please shutdown Rocket.Chat first to get a clean backup"
+    echo "[-] Use 'sudo systemctl stop snap.rocketchat-server.rocketchat-server'"
 fi
 
 TIMESTAMP=$(date +"%Y%m%d.%H%M")
-BACKUP_DIR=$SNAP_COMMON/backup
-BACKUP_FILE=$BACKUP_DIR/rocketchat_backup_$TIMESTAMP.tar.gz
-LOG=$BACKUP_DIR/backup_$TIMESTAMP.log
-DUMP_DIR=$BACKUP_DIR/dump
+BACKUP_DIR="${SNAP_COMMON}/backup"
 
-[[ -d $BACKUP_DIR ]] || mkdir $BACKUP_DIR
-[[ -d $DUMP_DIR ]] && rm -rf $DUMP_DIR
-[[ -f $BACKUP_FILE ]] && rm -rf $BACKUP_FILE
-[[ -f $LOG ]] && rm -f $LOG
+if [[ ! -d ${BACKUP_DIR} ]]; then
+    mkdir ${BACKUP_DIR}
+fi
 
-log "[*] Creating backup file..."
-mkdir $DUMP_DIR
-log "[*] Dumping database with \"mongodump -d parties -o $DUMP_DIR\""
-mongodump -d parties -o $DUMP_DIR &>> $LOG
-log "[*] Packing archive with \"tar czvf $BACKUP_FILE $DUMP_DIR\""
-tar czvf $BACKUP_FILE -C $BACKUP_DIR dump
-rm -rf $DUMP_DIR
+if [[ -d ${BACKUP_DIR}/dump ]]; then
+    rm -rf ${BACKUP_DIR}/dump
+fi
 
-echo "[+] A backup of your data can be found at $BACKUP_FILE"
+if [[ -f ${BACKUP_DIR}/rocketchat_backup_${TIMESTAMP}.tar.gz ]]; then
+    rm -f ${BACKUP_DIR}/rocketchat_backup_${TIMESTAMP}.tar.gz
+fi
+
+if [[ -f ${BACKUP_DIR}/backup_${TIMESTAMP}.log ]]; then
+    rm -f ${BACKUP_DIR}/backup_${TIMESTAMP}.log
+fi
+
+echo "[*] Creating backup file..."
+mkdir ${BACKUP_DIR}/dump
+echo "[*] Dumping database with \"mongodump -d parties -o ${BACKUP_DIR}/dump\"" > "${BACKUP_DIR}/backup_${TIMESTAMP}.log"
+mongodump -d parties -o ${BACKUP_DIR}/dump &>> "${BACKUP_DIR}/backup_${TIMESTAMP}.log"
+echo "[*] Packing archive with \"tar czvf ${BACKUP_DIR}/rocketchat_backup_${TIMESTAMP}.tar.gz ${BACKUP_DIR}/dump\"" >> "${BACKUP_DIR}/backup_${TIMESTAMP}.log"
+tar czvf ${BACKUP_DIR}/rocketchat_backup_${TIMESTAMP}.tar.gz -C ${BACKUP_DIR} dump &>> "${BACKUP_DIR}/backup_${TIMESTAMP}.log"
+rm -rf ${BACKUP_DIR}/dump
+
+echo "[+] A backup of your data can be found at ${BACKUP_DIR}/rocketchat_backup_${TIMESTAMP}.tar.gz"
