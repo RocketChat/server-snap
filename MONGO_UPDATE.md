@@ -44,3 +44,11 @@ From after this, if performing consecutive mongodb updates in a short amount of 
 | 1          | n     |
 | 2          | n*    |
 |  3 (final) | (n+1) |
+
+## 4. Disable migration
+
+Once snap released wwith desired mongodb version, disable the migration (keeping it won't necessarily do any harm, but why)
+
+```sh
+chmod -x migrations/pre_refresh/feature_compatibility/00-adopt-version.sh
+```
