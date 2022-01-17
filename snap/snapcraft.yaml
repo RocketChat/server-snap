@@ -3,12 +3,12 @@
 name: rocketchat-server
 title: Rocket.Chat Server
 base: core18
-version: 4.2.2
+version: 4.3.1
 summary: An Open Source Slack Alternative
 description: |
   Have your own Slack like online chat, built with Meteor. https://rocket.chat/
 
-epoch: 3*
+epoch: 4*
 
 grade: stable
 confinement: strict
@@ -117,8 +117,8 @@ parts:
   node:
     plugin: dump
     source:
-      - on amd64: https://nodejs.org/download/release/v12.22.7/node-v12.22.7-linux-x64.tar.gz
-      - on arm64: https://nodejs.org/download/release/v12.22.7/node-v12.22.7-linux-arm64.tar.gz
+      - on amd64: https://nodejs.org/download/release/v12.22.8/node-v12.22.8-linux-x64.tar.gz
+      - on arm64: https://nodejs.org/download/release/v12.22.8/node-v12.22.8-linux-arm64.tar.gz
     stage:
       - bin
       - include
