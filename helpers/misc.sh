@@ -11,4 +11,4 @@ init_user_environment_variables() {
 }
 
 # list migration scripts based on where it's called (pre-refresh/post-refresh)
-get_migrations() { local __=${0##*/}; find $SNAP/migrations/${__/-/_} -executable -type f; }
+get_migrations() { local __=${0##*/}; find -L $SNAP/migrations/${__/-/_} -perm /111 -type f; }

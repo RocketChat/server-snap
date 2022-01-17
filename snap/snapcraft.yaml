@@ -1,12 +1,14 @@
+# fixing revision 1502 unreliable find --executble issue
+
 name: rocketchat-server
 title: Rocket.Chat Server
 base: core18
-version: 4.3.1
+version: 4.2.2
 summary: An Open Source Slack Alternative
 description: |
   Have your own Slack like online chat, built with Meteor. https://rocket.chat/
 
-epoch: 5*
+epoch: 3*
 
 grade: stable
 confinement: strict
@@ -19,7 +21,10 @@ apps:
     environment: {LC_ALL: C}
     stop-command: bin/stop_mongod.sh
     daemon: forking
-    plugs: [network-bind]
+    plugs:
+      - network
+      - network-bind
+      - network-observe
 
   rocketchat-server:
     command: bin/start_rocketchat.sh
@@ -51,10 +56,12 @@ apps:
   backupdb:
     command: bin/backupdb.sh
     environment: {LC_ALL: C}
+    plugs: [network]
 
   restoredb:
     command: bin/restoredb.sh
     environment: {LC_ALL: C}
+    plugs: [network]
 
 hooks:
   install: &hook_plugs
@@ -69,8 +76,8 @@ parts:
   mongodb:
     plugin: dump
     source:
-      # - on amd64: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1804-3.6.23.tgz
-      - on amd64: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1804-4.0.27.tgz
+      - on amd64: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1804-3.6.23.tgz
+      # - on amd64: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1804-4.0.27.tgz
       # - on amd64: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1804-4.2.17.tgz
       - on arm64: https://fastdl.mongodb.org/linux/mongodb-linux-arm64-ubuntu1604-3.6.23.tgz
     stage-packages:
@@ -110,8 +117,8 @@ parts:
   node:
     plugin: dump
     source:
-      - on amd64: https://nodejs.org/download/release/v12.22.8/node-v12.22.8-linux-x64.tar.gz
-      - on arm64: https://nodejs.org/download/release/v12.22.8/node-v12.22.8-linux-arm64.tar.gz
+      - on amd64: https://nodejs.org/download/release/v12.22.7/node-v12.22.7-linux-x64.tar.gz
+      - on arm64: https://nodejs.org/download/release/v12.22.7/node-v12.22.7-linux-arm64.tar.gz
     stage:
       - bin
       - include
@@ -140,7 +147,7 @@ parts:
         )
       fi
 
-      (cd programs/server; npm i --unsafe-perm)
+      (cd programs/server; npm i --production --unsafe-perm)
 
       snapcraftctl build
     filesets:

@@ -55,24 +55,12 @@ init_caddy_conf() {
 }
 
 init_default_snap_configurations() {
-  port=$(snapctl get port)
-  [[ -z $port ]] && snapctl set port=3000
-
-  url=$(snapctl get caddy-url)
-  [[ -z $url ]] && url=$(snapctl get siteurl)
-  [[ -n $url ]] && snapctl set siteurl=$url || snapctl set siteurl=http://localhost:$port
-
-  [[ -n $(snapctl get mongo-url) ]] || snapctl set mongo-url=mongodb://localhost:27017/parties
-  [[ -n $(snapctl get mongo-oplog-url) ]] || snapctl set mongo-oplog-url=mongodb://localhost:27017/local
-  [[ -n $(snapctl get backup-on-refresh) ]] || snapctl set backup-on-refresh=disable
-
+  snapctl set port=3000
+  snapctl set siteurl=http://localhost:3000
+  snapctl set mongo-url=mongodb://localhost:27017/parties
+  snapctl set mongo-oplog-url=mongodb://localhost:27017/local
+  snapctl set backup-on-refresh=disable
   snapctl set ignore-errors=false
-
-  snapctl unset snap-refreshing
-  snapctl unset caddy
-  snapctl unset caddy-url
-  snapctl unset https
-  snapctl unset db-feature-compatibility-version
 }
 
 
