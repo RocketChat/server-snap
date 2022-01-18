@@ -1,3 +1,5 @@
+# fixing revision 1502 unreliable find --executble issue
+
 name: rocketchat-server
 title: Rocket.Chat Server
 base: core18
@@ -19,7 +21,10 @@ apps:
     environment: {LC_ALL: C}
     stop-command: bin/stop_mongod.sh
     daemon: forking
-    plugs: [network-bind]
+    plugs:
+      - network
+      - network-bind
+      - network-observe
 
   rocketchat-server:
     command: bin/start_rocketchat.sh
@@ -51,10 +56,12 @@ apps:
   backupdb:
     command: bin/backupdb.sh
     environment: {LC_ALL: C}
+    plugs: [network]
 
   restoredb:
     command: bin/restoredb.sh
     environment: {LC_ALL: C}
+    plugs: [network]
 
 hooks:
   install: &hook_plugs
@@ -140,7 +147,7 @@ parts:
         )
       fi
 
-      (cd programs/server; npm i --unsafe-perm)
+      (cd programs/server; npm i --production --unsafe-perm)
 
       snapcraftctl build
     filesets:

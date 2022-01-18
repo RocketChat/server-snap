@@ -52,7 +52,7 @@ EOF
 
 init_default_snap_configurations() {
   port=$(snapctl get port)
-  [[ -z $port ]] && snapctl set port=3000
+  [[ -z $port ]] && { snapctl set port=3000; port=3000; }
 
   url=$(snapctl get caddy-url)
   [[ -z $url ]] && url=$(snapctl get siteurl)
