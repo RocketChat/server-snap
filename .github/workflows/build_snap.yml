@@ -8,7 +8,6 @@ jobs:
   release_snap_amd64:
     # Obs: tracks can’t be opened dynamically. We have to explicitly open them by request when a new major version gets released, otherwise this task will fail.
     env:
-      SNAPCRAFT_REPO: RocketChat/rocketchat-server-snap
       TESTS_REPO: RocketChat/rocketchat-release-tests
     runs-on: ubuntu-18.04
     steps:
@@ -64,7 +63,6 @@ jobs:
 
       - name: Rocket.Chat Notification
         uses: RocketChat/Rocket.Chat.GitHub.Action.Notification@master
-        if: env.CANDIDATE == 'false'
         continue-on-error: true
         with:
           type: ${{ job.status }}
