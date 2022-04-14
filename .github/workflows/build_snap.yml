@@ -17,7 +17,7 @@ jobs:
           echo "ROCKETCHAT_VERSION: $ROCKETCHAT_VERSION"
           echo "SNAP_TRACK=${ROCKETCHAT_VERSION:0:1}.x" >> $GITHUB_ENV
           echo "ROCKETCHAT_VERSION=$ROCKETCHAT_VERSION" >> $GITHUB_ENV
-          [[ $ROCKETCHAT_VERSION =~ rc$ ]] && echo "CANDIDATE=false" >> $GITHUB_ENV
+          [[ $ROCKETCHAT_VERSION =~ rc$ ]] && echo "CANDIDATE=false" >> $GITHUB_ENV || true
 
       - name: Clone snapcraft repo
         uses: actions/checkout@v2
