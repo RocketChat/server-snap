@@ -8,6 +8,8 @@ jobs:
   build:
     # Obs: tracks can’t be opened dynamically. We have to explicitly open them by request when a new major version gets released, otherwise this task will fail.
     runs-on: ubuntu-18.04
+    outputs:
+      snap_file: ${{ steps.build.outputs.snap }}
     steps:
       - name: Parse environment variables
         run: |
@@ -50,7 +52,7 @@ jobs:
 
       - name: Check correct  snap path
         run: |
-          path=${{ needs.jobs.build.outputs.output1 }}
+          path=${{ needs.jobs.build.outputs.snap_file }}
           echo "path: $path"
           path="${path##*/}"
           echo "path: $path"
