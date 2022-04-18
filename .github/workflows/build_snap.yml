@@ -39,7 +39,6 @@ jobs:
     runs-on: ubuntu-18.04
     needs: [build]
     env:
-      SNAP_PATH: /tmp/rocketchat.snap
       TESTS_REPO: debdutdeb/rocketchat-release-tests
 
     steps:
@@ -47,7 +46,15 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: snap_package
-          path: ${{ env.SNAP_PATH }}
+          path: /tmp
+
+      - name: Check correct  snap path
+        run: |
+          path=${{ needs.jobs.build.outputs.output1 }}
+          echo "path: $path"
+          path="${path##*/}"
+          echo "path: $path"
+          echo "SNAP_PATH=$path" >> $GITHUB_ENV
 
       - name: Clone tests repo
         uses: actions/checkout@v2
