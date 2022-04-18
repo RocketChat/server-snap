@@ -52,7 +52,7 @@ jobs:
 
       - name: Check correct  snap path
         run: |
-          path=${{ needs.jobs.build.outputs.snap_file }}
+          path=${{ needs.build.outputs.snap_file }}
           echo "path: $path"
           path="${path##*/}"
           echo "path: $path"
