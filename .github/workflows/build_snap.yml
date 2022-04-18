@@ -20,12 +20,6 @@ jobs:
       - name: Clone snapcraft repo
         uses: actions/checkout@v2
 
-      - name: Clone tests repo
-        uses: actions/checkout@v2
-        with:
-          repository: '${{ env.TESTS_REPO }}'
-          path: './test_scripts'
-
         id: version
       - name: Set build version
         run: sed -i -r '/^version:/ s/ .+/ ${{ env.ROCKETCHAT_VERSION }}/' ./snap/snapcraft.yaml
@@ -54,6 +48,12 @@ jobs:
         with:
           name: snap_package
           path: ${{ env.SNAP_PATH }}
+
+      - name: Clone tests repo
+        uses: actions/checkout@v2
+        with:
+          repository: '${{ env.TESTS_REPO }}'
+          path: './test_scripts'
 
       - name: Install and test the generated snap
         run: ./test_scripts/snap_install_test.sh ${{ env.SNAP_PATH }}
