@@ -56,7 +56,7 @@ jobs:
           echo "path: $path"
           path="${path##*/}"
           echo "path: $path"
-          echo "SNAP_PATH=$path" >> $GITHUB_ENV
+          echo "SNAP_PATH=/tmp/$path" >> $GITHUB_ENV
 
       - name: Clone tests repo
         uses: actions/checkout@v2
