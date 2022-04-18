@@ -58,6 +58,14 @@ jobs:
           echo "path: $path"
           echo "SNAP_PATH=/tmp/$path" >> $GITHUB_ENV
 
+      - name: Parse environment variables
+        run: |
+          export ROCKETCHAT_VERSION=${{ github.event.release.tag_name }}
+          echo "ROCKETCHAT_VERSION: $ROCKETCHAT_VERSION"
+          echo "SNAP_TRACK=${ROCKETCHAT_VERSION:0:1}.x" >> $GITHUB_ENV
+          echo "ROCKETCHAT_VERSION=$ROCKETCHAT_VERSION" >> $GITHUB_ENV
+          [[ $ROCKETCHAT_VERSION =~ rc$ ]] && echo "CANDIDATE=false" >> $GITHUB_ENV || true
+
       - name: Clone tests repo
         uses: actions/checkout@v2
         with:
