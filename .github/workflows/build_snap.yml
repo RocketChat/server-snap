@@ -5,10 +5,8 @@ on:
     types: [published]
 
 jobs:
-  release_snap_amd64:
+  build:
     # Obs: tracks can’t be opened dynamically. We have to explicitly open them by request when a new major version gets released, otherwise this task will fail.
-    env:
-      TESTS_REPO: RocketChat/rocketchat-release-tests
     runs-on: ubuntu-18.04
     steps:
       - name: Parse environment variables
@@ -25,7 +23,7 @@ jobs:
       - name: Clone tests repo
         uses: actions/checkout@v2
         with:
-          repository: "${{ env.TESTS_REPO }}"
+          repository: '${{ env.TESTS_REPO }}'
           path: './test_scripts'
 
         id: version
@@ -36,10 +34,29 @@ jobs:
         uses: snapcore/action-build@v1
         id: build
         with:
-          path: "."
+          path: '.'
+
+      - name: Upload snap
+        uses: actions/upload-artifact@v3
+        with:
+          path: ${{ steps.build.outputs.snap }}
+          name: snap_package
+  deploy:
+    runs-on: ubuntu-18.04
+    needs: [build]
+    env:
+      SNAP_PATH: /tmp/rocketchat.snap
+      TESTS_REPO: debdutdeb/rocketchat-release-tests
+
+    steps:
+      - name: Download snap
+        uses: actions/download-artifact@v3
+        with:
+          name: snap_package
+          path: ${{ env.SNAP_PATH }}
 
       - name: Install and test the generated snap
-        run: ./test_scripts/snap_install_test.sh ${{ steps.build.outputs.snap }}
+        run: ./test_scripts/snap_install_test.sh ${{ env.SNAP_PATH }}
 
       - name: Remove snap
         run: sudo snap remove rocketchat-server
@@ -48,7 +65,7 @@ jobs:
         uses: snapcore/action-publish@v1
         with:
           store_login: ${{ secrets.SNAPCRAFT_LOGIN }}
-          snap: ${{ steps.build.outputs.snap }}
+          snap: ${{ env.SNAP_PATH }}
           release: ${{ env.SNAP_TRACK }}/edge
 
       - name: Test snap updating
