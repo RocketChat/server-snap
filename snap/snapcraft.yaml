@@ -129,6 +129,8 @@ parts:
       - on arm64: https://github.com/libvips/libvips/releases/download/v8.12.2/vips-8.12.2.tar.gz
     # this should later be moved to meson (8.12+)
     plugin: autotools
+    override-build: |
+      [ "$SNAP_ARCH" = "arm64" ] && snapcraftctl build || true
     build-packages:
       - build-essential
       - swig
@@ -197,6 +199,10 @@ parts:
       - libxext6
       - libxml2
       - libxrender1
+    override-stage: |
+      [ "$SNAP_ARCH" = "arm64" ] && snapcraftctl stage || true
+    override-prime: |
+      [ "$SNAP_ARCH" = "arm64" ] && snapcraftctl prime || true
 
   rocketchat:
     # plugin: rocketchatv2
