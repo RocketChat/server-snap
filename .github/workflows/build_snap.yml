@@ -6,6 +6,7 @@ on:
 
 jobs:
   build:
+    if: false
     # Obs: tracks can’t be opened dynamically. We have to explicitly open them by request when a new major version gets released, otherwise this task will fail.
     runs-on: ubuntu-18.04
     outputs:
