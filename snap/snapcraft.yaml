@@ -130,7 +130,7 @@ parts:
     # this should later be moved to meson (8.12+)
     plugin: autotools
     override-build: |
-      [ "$SNAP_ARCH" = "arm64" ] && snapcraftctl build || true
+      if [ "$SNAP_ARCH" = "arm64" ]; then snapcraftctl build; fi
     build-packages:
       - build-essential
       - swig
@@ -200,15 +200,17 @@ parts:
       - libxml2
       - libxrender1
     override-stage: |
-      [ "$SNAP_ARCH" = "arm64" ] && snapcraftctl stage || true
+      if [ "$SNAP_ARCH" = "arm64" ]; then snapcraftctl stage; fi
     override-prime: |
-      [ "$SNAP_ARCH" = "arm64" ] && snapcraftctl prime || true
+      if [ "$SNAP_ARCH" = "arm64" ]; then snapcraftctl prime; fi
 
   rocketchat:
     # plugin: rocketchatv2
     # node: 12.22.8
     plugin: dump
-    source: https://cdn-download.rocket.chat/build/rocket.chat-$SNAPCRAFT_PROJECT_VERSION.tgz
+    # source: https://cdn-download.rocket.chat/build/rocket.chat-$SNAPCRAFT_PROJECT_VERSION.tgz
+    source: https://releases.rocket.chat/$SNAPCRAFT_PROJECT_VERSION/download
+    source-type: tar
     after:
       - node
       - libvips
