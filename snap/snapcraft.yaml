@@ -126,7 +126,7 @@ parts:
 
   libvips:
     source:
-      - on arm: https://github.com/libvips/libvips/releases/download/v8.12.2/vips-8.12.2.tar.gz
+      - on arm64: https://github.com/libvips/libvips/releases/download/v8.12.2/vips-8.12.2.tar.gz
     # this should later be moved to meson (8.12+)
     plugin: autotools
     build-packages:
