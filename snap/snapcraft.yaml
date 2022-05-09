@@ -124,31 +124,92 @@ parts:
       - include
       - lib
 
+  libvips:
+    source:
+      - on arm: https://github.com/libvips/libvips/releases/download/v8.12.2/vips-8.12.2.tar.gz
+    # this should later be moved to meson (8.12+)
+    plugin: autotools
+    build-packages:
+      - build-essential
+      - swig
+      - libxml2-dev
+      - libfftw3-dev
+      - libmagickwand-dev
+      - libopenexr-dev
+      - liborc-0.4-0
+      - gobject-introspection
+      - libgsf-1-dev
+      - libglib2.0-dev
+      - liborc-0.4-dev
+      - gtk-doc-tools
+      - libopenslide-dev
+      - libmatio-dev
+      - libgif-dev
+      - libwebp-dev
+      - libjpeg-turbo8-dev
+      - libexpat1-dev
+    stage-packages:
+      - libaec0
+      - libcairo2
+      - libcroco2
+      - libdatrie1
+      - libexif12
+      - libfftw3-double3
+      - libfontconfig1
+      - libfreetype6
+      - libgdk-pixbuf2.0-0
+      - libgomp1
+      - libgraphite2-3
+      - libgsf-1-114
+      - libharfbuzz0b
+      - libhdf5-100
+      - libicu60
+      - libilmbase12
+      - libjbig0
+      - libjpeg-turbo8
+      - liblcms2-2
+      - liblqr-1-0
+      - libltdl7
+      - libmagickcore-6.q16-3
+      - libmatio4
+      - libopenexr22
+      - libopenjp2-7
+      - libopenslide0
+      - liborc-0.4-0
+      - libpango-1.0-0
+      - libpangocairo-1.0-0
+      - libpangoft2-1.0-0
+      - libpixman-1-0
+      - libpng16-16
+      - librsvg2-2
+      - libsz2
+      - libthai0
+      - libtiff5
+      - libwebp6
+      - libwebpdemux2
+      - libwebpmux3
+      - libx11-6
+      - libxau6
+      - libxcb-render0
+      - libxcb-shm0
+      - libxcb1
+      - libxdmcp6
+      - libxext6
+      - libxml2
+      - libxrender1
+
   rocketchat:
     # plugin: rocketchatv2
     # node: 12.22.8
     plugin: dump
     source: https://cdn-download.rocket.chat/build/rocket.chat-$SNAPCRAFT_PROJECT_VERSION.tgz
-    after: [node]
+    after:
+      - node
+      - libvips
     build-packages:
       - build-essential
-      - on arm64:
-          - autoconf
-          - automake
-          - libtool
     override-build: |
-      if [ "$SNAP_ARCH" = "arm64" ]; then
-        rm -rf programs/server/npm/node_modules/sharp/vendor -rf
-        mkdir vips
-        (
-          cd vips
-          curl -fsSL https://github.com/libvips/libvips/releases/download/v8.12.1/vips-8.12.1.tar.gz | tar zx --strip-components=1 --
-          ./configure && make && make install
-        )
-      fi
-
       (cd programs/server; npm i --production --unsafe-perm)
-
       snapcraftctl build
     filesets:
       excluded:
@@ -157,7 +218,6 @@ parts:
         - -LICENSE
         - -CHANGELOG.md
         - -share
-        - -vips
         # filesets are excluding hidden files
         # BUG - need to fix upstream
         # not a bug, design choice
