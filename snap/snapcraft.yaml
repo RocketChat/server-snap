@@ -151,7 +151,7 @@ parts:
     stage-packages:
       - libaec0
       - libcairo2
-      - libcroco2
+      - libcroco3
       - libdatrie1
       - libexif12
       - libfftw3-double3
