@@ -82,9 +82,10 @@ parts:
     stage-packages:
       # For the dependecies:
       # https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu-tarball/#install-mongodb-community-edition
-      - libcurl4
       - openssl
       - liblzma5
+      - on amd64: [libcurl4]
+      - on arm64: [libcurl3]
     filesets:
       excluded:
         - -LICENSE-Community.txt
