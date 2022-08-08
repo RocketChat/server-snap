@@ -1,12 +1,12 @@
 name: rocketchat-server
 title: Rocket.Chat Server
 base: core20
-version: 4.8.2
+version: 4.8.3
 summary: An Open Source Slack Alternative
 description: |
   Have your own Slack like online chat, built with Meteor. https://rocket.chat/
 
-epoch: 7*
+epoch: 8*
 
 grade: stable
 confinement: strict
