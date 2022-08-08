@@ -6,7 +6,7 @@ summary: An Open Source Slack Alternative
 description: |
   Have your own Slack like online chat, built with Meteor. https://rocket.chat/
 
-epoch: 6*
+epoch: 7*
 
 grade: stable
 confinement: strict
