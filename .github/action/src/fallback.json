@@ -1,0 +1,14 @@
+{
+  "version": {
+    "$shell": "curl --silent https://releases.rocket.chat/latest/info | jq -r .tag"
+  },
+  "epoch": {
+    "$last": true
+  },
+  "mongodb": {
+    "$last": true
+  },
+  "migrations": {
+    "$previous": true
+  }
+}

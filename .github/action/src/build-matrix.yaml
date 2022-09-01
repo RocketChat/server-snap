@@ -1,0 +1,17 @@
+releases:
+  -
+    version:
+    mongodb:
+      server:
+        version:
+        link:
+      tools:
+        version:
+        link:
+    migrations:
+      pre:
+        - some
+        - -some
+    epoch:
+
+  -
