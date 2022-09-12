@@ -1,7 +1,7 @@
 name: rocketchat-server
 title: Rocket.Chat Server
 base: core20
-version: 5.0.2
+version: 5.0.6
 summary: An Open Source Slack Alternative
 description: |
   Have your own Slack like online chat, built with Meteor. https://rocket.chat/
@@ -220,6 +220,8 @@ parts:
       # - libvips
     build-packages:
       - build-essential
+    stage-packages::
+      - fontconfig
     override-build: |
       (cd programs/server; npm i --production --unsafe-perm)
       snapcraftctl build
