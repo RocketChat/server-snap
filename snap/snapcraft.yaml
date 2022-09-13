@@ -220,7 +220,7 @@ parts:
       # - libvips
     build-packages:
       - build-essential
-    stage-packages::
+    stage-packages:
       - fontconfig
     override-build: |
       (cd programs/server; npm i --production --unsafe-perm)
