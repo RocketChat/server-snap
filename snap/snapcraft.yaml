@@ -106,14 +106,14 @@ parts:
         - -bin/mongotop
     stage: [$excluded]
 
-  # mongodb-tools:
-  #   plugin: dump
-  #   source:
-  #     - on amd64: https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2004-x86_64-100.5.0.tgz
-  #     - on arm64: https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2004-arm64-100.5.0.tgz
-  #   stage:
-  #     - bin/mongodump
-  #     - bin/mongorestore
+  mongodb-tools:
+    plugin: dump
+    source:
+      - on amd64: https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2004-x86_64-100.5.0.tgz
+      # - on arm64: https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2004-arm64-100.5.0.tgz
+    stage:
+      - bin/mongodump
+      - bin/mongorestore
 
   node:
     plugin: dump
