@@ -12,15 +12,16 @@ jobs:
       - name: Get latest tags
         id: only
         shell: bash
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_LOGIN }}
         run: |
           latest_release=$(curl -s https://releases.rocket.chat/latest/info | jq -r .tag)
           echo "latest_release: $latest_release"
           candidate_release=$(curl -s https://releases.rocket.chat/candidate/info | jq .tag -r)
           echo "candidate_release: $candidate_release"
+          &>/dev/null command -v snapcraft || sudo snap install snapcraft --classic --stable
           &>/dev/null command -v jo || sudo apt install jo -y
           versions=()
-          sudo snap install snapcraft --classic --stable
-          echo "${{ secrets.SNAPCRAFT_LOGIN }}" | snapcraft login --with --
           snapcraft list-revisions rocketchat-server --arch amd64 | grep -q $latest_release &&
             versions+=($latest_release)
           snapcraft list-revisions rocketchat-server --arch amd64 | grep -q $candidate_release &&
