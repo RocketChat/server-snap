@@ -43,6 +43,9 @@ runs:
       shell: bash
       working-directory: rocketchat
       run: |
+        pwd
+        ls -al
+        ls -al rocketchat
         echo "run=false" >> $GITHUB_OUTPUT
         echo "commit=false" >> $GITHUB_OUTPUT
         current_track=${{ steps.prepare.outputs.snap_track }}
