@@ -101,7 +101,7 @@ runs:
         token: ${{ inputs.github-token }}
         name: ${{ inputs.tag }}
         tag_name: ${{ inputs.tag }}
-        body: format('https://github.com/RocketChat/Rocket.Chat/releases/{0}', ${{ inputs.tag }})
+        body: ${{ format('https://github.com/RocketChat/Rocket.Chat/releases/{0}', inputs.tag) }}
         draft: false
 
     - name: "Upload to snapstore"
@@ -110,7 +110,7 @@ runs:
       with:
         store_login: ${{ inputs.snapcraft-credential }}
         snap: ${{ steps.snap-build.outputs.snap }}
-        release: format('{0}/edge', ${{ steps.prepare.outputs.snap-track }})
+        release: ${{ format('{0}/edge', steps.prepare.outputs.snap-track) }}
 
     - name: "Promote if candidate"
       if: "${{ steps.should.outputs.run == 'true' && steps.prepare.outputs.candidate == 'true' }}"
