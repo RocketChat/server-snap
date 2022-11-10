@@ -17,7 +17,7 @@ jobs:
         run: |
           latest_release=$(curl -s https://releases.rocket.chat/latest/info | jq -r .tag)
           echo "latest_release: $latest_release"
-          candidate_release=$(curl -s https://releases.rocket.chat/candidate/info | jq .tag -r)
+          candidate_release=$(curl -s https://releases.rocket.chat/rc/info | jq .tag -r)
           echo "candidate_release: $candidate_release"
           &>/dev/null command -v snapcraft || sudo snap install snapcraft --classic --stable
           &>/dev/null command -v jo || sudo apt install jo -y
@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        version: fromJSON( ${{ needs.Prepare.outputs.versions-json }} )
+        version: ${{ fromJSON(needs.Prepare.outputs.versions-json) }}
     steps:
       - name: Clone repository
         uses: actions/checkout@v3
