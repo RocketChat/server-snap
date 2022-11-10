@@ -14,7 +14,9 @@ jobs:
         shell: bash
         run: |
           latest_release=$(curl -s https://releases.rocket.chat/latest/info | jq -r .tag)
+          echo "latest_release: $latest_release"
           candidate_release=$(curl -s https://releases.rocket.chat/candidate/info | jq .tag -r)
+          echo "candidate_release: $candidate_release"
           &>/dev/null command -v jo || sudo apt install jo -y
           versions=()
           echo "${{ secrets.SNAPCRAFT_LOGIN }}" | snapcraft login --with --
@@ -22,6 +24,7 @@ jobs:
             versions+=($latest_release)
           snapcraft list-revisions rocketchat-server --arch amd64 | grep -q $candidate_release &&
             versions+=($candidate_release)
+          echo "To run for: ${versions[@]}"
           echo "run-for=$(jo -a ${versions[@]})" >> $GITHUB_OUTPUT
 
   BuildAndRelease:
