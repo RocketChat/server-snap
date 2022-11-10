@@ -43,14 +43,11 @@ runs:
       shell: bash
       working-directory: rocketchat
       run: |
-        pwd
-        ls -al
-        ls -al rocketchat
         echo "run=false" >> $GITHUB_OUTPUT
         echo "commit=false" >> $GITHUB_OUTPUT
-        current_track=${{ steps.prepare.outputs.snap_track }}
+        current_track=${{ steps.prepare.outputs.snap-track }}
         &> /dev/null command -v yq || sudo apt install yq -y
-        current_version="$(yq -e .version snap/snapcraft.yml)"
+        current_version="$(yq -e .version snap/snapcraft.yaml)"
         if [[ $current_version != ${{ inputs.tag }} ]]; then
           for track in (4.x 5.x); do # Only allow these two tracks for now
             if [[ $track == $current_track ]]; then
@@ -77,9 +74,6 @@ runs:
       working-directory: rocketchat
       if: "${{ steps.should.outputs.run == 'true' }}"
       run: |
-        pwd
-        ls -al
-        ls rocketchat/ -al
         sed -i -r '/^version:/ s/ .+/ ${{ inputs.tag }}/' ./snap/snapcraft.yaml
 
     - name: "Build the Snap package"
