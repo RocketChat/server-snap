@@ -4,11 +4,39 @@ on:
   workflow_dispatch:
 
 jobs:
-  BuildAndRelease:
+  Prepare:
+    outputs:
+      versions-json: ${{ steps.only.outputs.versions }}
     runs-on: ubuntu-latest
+    steps:
+      - name: Get latest tags
+        id: only
+        shell: bash
+        run: |
+          latest_release=$(curl -s https://releases.rocket.chat/latest/info | jq -r .tag)
+          candidate_release=$(curl -s https://releases.rocket.chat/candidate/info | jq .tag -r)
+          &>/dev/null command -v jo || sudo apt install jo -y
+          versions=()
+          echo "${{ secrets.SNAPCRAFT_LOGIN }}" | snapcraft login --with --
+          snapcraft list-revisions rocketchat-server --arch amd64 | grep -q $latest_release &&
+            versions+=($latest_release)
+          snapcraft list-revisions rocketchat-server --arch amd64 | grep -q $candidate_release &&
+            versions+=($candidate_release)
+          echo "run-for=$(jo -a ${versions[@]})" >> $GITHUB_OUTPUT
+
+  BuildAndRelease:
+    needs: [Prepare]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        version: fromJSON( ${{ needs.Prepare.outputs.versions-json }} )
     steps:
       - name: Clone repository
         uses: actions/checkout@v3
 
-      - name: Run action
+      - name: Run main action
         uses: .
+        with:
+          snapcraft-credential: ${{ secrets.SNAPCRAFT_LOGIN }}
+          tag: ${{ matrix.version }}
+          github-token: ${{ secrets.GH_TOKEN_PERSONAL }}
