@@ -65,7 +65,7 @@ runs:
           (( ${v1[2]} > ${v2[2]} )) && return 0
           return 1
         }
-        [[ $candidate == 'false' ]] &&  # if candidate, don't commit
+        [[ ${{ steps.prepare.outputs.candidate }} == 'false' ]] &&  # if candidate, don't commit
           is_gt $current_version ${{ inputs.tag }} && echo "commit=true" >> $GITHUB_OUTPUT || true
 
     # Repo will add the commit once the build is successful
