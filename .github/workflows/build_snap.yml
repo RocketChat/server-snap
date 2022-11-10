@@ -19,6 +19,7 @@ jobs:
           echo "candidate_release: $candidate_release"
           &>/dev/null command -v jo || sudo apt install jo -y
           versions=()
+          snap install snapcraft --classic --stable
           echo "${{ secrets.SNAPCRAFT_LOGIN }}" | snapcraft login --with --
           snapcraft list-revisions rocketchat-server --arch amd64 | grep -q $latest_release &&
             versions+=($latest_release)
