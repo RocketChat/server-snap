@@ -38,7 +38,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Run main action
-        uses: .
+        uses: ./
         with:
           snapcraft-credential: ${{ secrets.SNAPCRAFT_LOGIN }}
           tag: ${{ matrix.version }}
