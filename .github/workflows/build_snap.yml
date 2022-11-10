@@ -6,7 +6,7 @@ on:
 jobs:
   Prepare:
     outputs:
-      versions-json: ${{ steps.only.outputs.versions }}
+      versions-json: ${{ steps.only.outputs.run-for }}
     runs-on: ubuntu-latest
     steps:
       - name: Get latest tags
