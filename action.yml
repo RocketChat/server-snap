@@ -74,6 +74,9 @@ runs:
       working-directory: rocketchat
       if: "${{ steps.should.outputs.run == 'true' }}"
       run: |
+        pwd
+        ls -al
+        ls rocketchat/ -al
         sed -i -r '/^version:/ s/ .+/ ${{ inputs.tag }}/' ./snap/snapcraft.yaml
 
     - name: "Build the Snap package"
