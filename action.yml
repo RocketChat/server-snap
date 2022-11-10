@@ -49,7 +49,7 @@ runs:
         &> /dev/null command -v yq || sudo apt install yq -y
         current_version="$(yq -e .version snap/snapcraft.yaml)"
         if [[ $current_version != ${{ inputs.tag }} ]]; then
-          for track in (4.x 5.x); do # Only allow these two tracks for now
+          for track in 4.x 5.x; do # Only allow these two tracks for now
             if [[ $track == $current_track ]]; then
               echo "run=true" >> $GITHUB_OUTPUT
               break
