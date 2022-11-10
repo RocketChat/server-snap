@@ -24,6 +24,7 @@ runs:
       uses: actions/checkout@v3
       with:
         repository: RocketChat/rocketchat-server-snap
+        path: rocketchat
 
     - name: "Prepare for next steps"
       id: prepare
@@ -40,6 +41,7 @@ runs:
     - name: "Check current version"
       id: should
       shell: bash
+      working-directory: rocketchat
       run: |
         echo "run=false" >> $GITHUB_OUTPUT
         echo "commit=false" >> $GITHUB_OUTPUT
@@ -69,6 +71,7 @@ runs:
     # Repo will add the commit once the build is successful
     - name: "Update version"
       shell: bash
+      working-directory: rocketchat
       if: "${{ steps.should.outputs.run == 'true' }}"
       run: |
         sed -i -r '/^version:/ s/ .+/ ${{ inputs.tag }}/' ./snap/snapcraft.yaml
@@ -78,13 +81,13 @@ runs:
       uses: snapcore/action-build@v1
       id: snap-build
       with:
-        path: .
+        path: rocketchat/
 
     - name: "Commit snapcraft file"
       if: "${{ steps.should.outputs.commit == 'true' }}"
       uses: EndBug/add-and-commit@v9
       with:
-        add: snap/snapcraft.yml
+        add: rocketchat/snap/snapcraft.yml
         message: "Bump Rocket.Chat version to ${{ inputs.tag }}"
         push: true
 
