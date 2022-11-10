@@ -27,14 +27,13 @@ jobs:
           snapcraft list-revisions rocketchat-server --arch amd64 | grep -q $candidate_release ||
             versions+=($candidate_release)
           echo "To run for: ${versions[@]}"
-          echo "run-for=$(jo -a ${versions[0]})" >> $GITHUB_OUTPUT # FIXME: avoiding race condition
+          echo "run-for=$(jo version=$(jo -a ${versions[0]}))" >> $GITHUB_OUTPUT # FIXME: avoiding race condition
 
   BuildAndRelease:
     needs: [Prepare]
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        version: ${{ fromJSON(needs.Prepare.outputs.versions-json) }}
+      matrix: ${{ fromJSON(needs.Prepare.outputs.versions-json) }}
     steps:
       - name: Clone repository
         uses: actions/checkout@v3
