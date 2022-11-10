@@ -22,9 +22,9 @@ jobs:
           &>/dev/null command -v snapcraft || sudo snap install snapcraft --classic --stable
           &>/dev/null command -v jo || sudo apt install jo -y
           versions=()
-          snapcraft list-revisions rocketchat-server --arch amd64 | grep -q $latest_release &&
+          snapcraft list-revisions rocketchat-server --arch amd64 | grep -q $latest_release ||
             versions+=($latest_release)
-          snapcraft list-revisions rocketchat-server --arch amd64 | grep -q $candidate_release &&
+          snapcraft list-revisions rocketchat-server --arch amd64 | grep -q $candidate_release ||
             versions+=($candidate_release)
           echo "To run for: ${versions[@]}"
           echo "run-for=$(jo -a ${versions[@]})" >> $GITHUB_OUTPUT
