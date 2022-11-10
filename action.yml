@@ -1,0 +1,107 @@
+name: "Release Latest Snap"
+description: "Build and public latest snap package"
+
+inputs:
+  tag:
+    description: |
+      Rocket.Chat version tag
+    required: true
+  snapcraft-credential:
+    description: |
+      Macaroon required for making snapcraft store release.
+      Optional, if not passed, we won't make a release
+    required: false
+  github-token:
+    description: |
+      GitHub Token for creating the release and update repository
+    required: true
+
+# TODO: add tests
+runs:
+  using: composite
+  steps:
+    - name: "Clone repository"
+      uses: actions/checkout@v3
+      with:
+        repository: RocketChat/rocketchat-server-snap
+
+    - name: "Prepare for next steps"
+      id: prepare
+      shell: bash
+      run: |
+        version=${{ inputs.tag }}
+        snap_track=${version:0:1}.x
+        grep -q "rc" <<< "$version" && candidate=true || candidate=false
+        #grep -q "beta" <<< "$version" && beta=true || beta=false
+        echo "candidate=$candidate" >> $GITHUB_OUTPUT
+        #echo "beta=$beta" >> $GITHUB_OUTPUT
+        echo "snap-track=$snap_track" >> $GITHUB_OUTPUT
+
+    - name: "Check current version"
+      id: should
+      shell: bash
+      run: |
+        echo "run=false" >> $GITHUB_OUTPUT
+        current_track=${{ steps.prepare.outputs.snap_track }}
+        &> /dev/null command -v yq || sudo apt install yq -y
+        current_version="$(yq -e .version snap/snapcraft.yml)"
+        if [[ $current_version != ${{ inputs.tag }} ]]; then
+          for track in (4.x 5.x); do # Only allow these two tracks for now
+            if [[ $track == $current_track ]]; then
+              echo "run=true" >> $GITHUB_OUTPUT
+              break
+            fi
+          done
+        fi
+
+    # Repo will add the commit once the build is successful
+    - name: "Update version"
+      shell: bash
+      if: "${{ steps.should.outputs.run == 'true' }}"
+      run: |
+        sed -i -r '/^version:/ s/ .+/ ${{ inputs.tag }}/' ./snap/snapcraft.yaml
+
+    - name: "Build the Snap package"
+      if: "${{ steps.should.outputs.run == 'true' }}"
+      uses: snapcore/action-build@v1
+      id: snap-build
+      with:
+        path: .
+
+    - name: "Commit snapcraft file"
+      if: "${{ steps.should.outputs.run == 'true' }}"
+      uses: EndBug/add-and-commit@v9
+      with:
+        add: snap/snapcraft.yml
+        message: "Bump Rocket.Chat version to ${{ inputs.tag }}"
+        push: true
+
+    - name: "Create release with artifact"
+      if: "${{ steps.should.outputs.run == 'true' }}"
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ${{ steps.snap-build.outputs.snap }}
+        prerelease: ${{ steps.prepare.outputs.candidate }}
+        repository: RocketChat/rocketchat-server-snap
+        token: ${{ inputs.github-token }}
+        name: ${{ inputs.tag }}
+        tag_name: ${{ inputs.tag }}
+        body: format('https://github.com/RocketChat/Rocket.Chat/releases/{0}', ${{ inputs.tag }})
+        draft: false
+
+    - name: "Upload to snapstore"
+      if: "${{ steps.should.outputs.run == 'true' && inputs.snapcraft-credential != '' }}"
+      uses: snapcore/action-publish@v1
+      with:
+        store_login: ${{ inputs.snapcraft-credential }}
+        snap: ${{ steps.snap-build.outputs.snap }}
+        release: format('{0}/edge', ${{ steps.prepare.outputs.snap-track }})
+
+    - name: "Promote if candidate"
+      if: "${{ steps.should.outputs.run == 'true' && steps.prepare.outputs.candidate == 'true' }}"
+      shell: bash
+      run: |
+        echo "${{ inputs.snapcraft-credential }}" | snapcraft login --with -
+        snap_track=${{ steps.prepare.outputs.snap-track }}
+        revision=$(snapcraft list-revisions rocketchat-server --arch amd64 | awk "/$snap_track\/edge/ { print \$1; exit; }")
+        snapcraft release rocketchat-server $revision $snap_track/candidate

@@ -1,106 +1,14 @@
 name: Update snap release
 
 on:
-  release:
-    types: [published]
+  workflow_dispatch:
 
 jobs:
-  build:
-    # Obs: tracks can’t be opened dynamically. We have to explicitly open them by request when a new major version gets released, otherwise this task will fail.
-    runs-on: ubuntu-18.04
-    outputs:
-      snap_file: ${{ steps.build.outputs.snap }}
+  BuildAndRelease:
+    runs-on: ubuntu-latest
     steps:
-      - name: Parse environment variables
-        run: |
-          export ROCKETCHAT_VERSION=${{ github.event.release.tag_name }}
-          echo "ROCKETCHAT_VERSION: $ROCKETCHAT_VERSION"
-          echo "SNAP_TRACK=${ROCKETCHAT_VERSION:0:1}.x" >> $GITHUB_ENV
-          echo "ROCKETCHAT_VERSION=$ROCKETCHAT_VERSION" >> $GITHUB_ENV
-          [[ $ROCKETCHAT_VERSION =~ rc$ ]] && echo "CANDIDATE=false" >> $GITHUB_ENV || true
+      - name: Clone repository
+        uses: actions/checkout@v3
 
-      - name: Clone snapcraft repo
-        uses: actions/checkout@v2
-
-        id: version
-      - name: Set build version
-        run: sed -i -r '/^version:/ s/ .+/ ${{ env.ROCKETCHAT_VERSION }}/' ./snap/snapcraft.yaml
-
-      - name: Build snap
-        uses: snapcore/action-build@v1
-        id: build
-        with:
-          path: '.'
-
-      - name: Upload snap
-        uses: actions/upload-artifact@v3
-        with:
-          path: ${{ steps.build.outputs.snap }}
-          name: snap_package
-  deploy:
-    runs-on: ubuntu-18.04
-    needs: [build]
-    env:
-      TESTS_REPO: debdutdeb/rocketchat-release-tests
-
-    steps:
-      - name: Download snap
-        uses: actions/download-artifact@v3
-        with:
-          name: snap_package
-          path: /tmp
-
-      - name: Check correct  snap path
-        run: |
-          path=${{ needs.build.outputs.snap_file }}
-          echo "path: $path"
-          path="${path##*/}"
-          echo "path: $path"
-          echo "SNAP_PATH=/tmp/$path" >> $GITHUB_ENV
-
-      - name: Parse environment variables
-        run: |
-          export ROCKETCHAT_VERSION=${{ github.event.release.tag_name }}
-          echo "ROCKETCHAT_VERSION: $ROCKETCHAT_VERSION"
-          echo "SNAP_TRACK=${ROCKETCHAT_VERSION:0:1}.x" >> $GITHUB_ENV
-          echo "ROCKETCHAT_VERSION=$ROCKETCHAT_VERSION" >> $GITHUB_ENV
-          [[ $ROCKETCHAT_VERSION =~ rc$ ]] && echo "CANDIDATE=false" >> $GITHUB_ENV || true
-
-      - name: Clone tests repo
-        uses: actions/checkout@v2
-        with:
-          repository: '${{ env.TESTS_REPO }}'
-          path: './test_scripts'
-
-      - name: Install and test the generated snap
-        run: ./test_scripts/snap_install_test.sh ${{ env.SNAP_PATH }}
-
-      - name: Remove snap
-        run: sudo snap remove rocketchat-server
-
-      - name: Publish snap to edge channel
-        uses: snapcore/action-publish@v1
-        with:
-          store_login: ${{ secrets.SNAPCRAFT_LOGIN }}
-          snap: ${{ env.SNAP_PATH }}
-          release: ${{ env.SNAP_TRACK }}/edge
-
-      - name: Test snap updating
-        run: ./test_scripts/snap_update_test.sh
-
-      - name: Promote edge to candidate
-        if: env.CANDIDATE == 'true'
-        run: |
-          echo "${{ secrets.SNAPCRAFT_LOGIN }}" | snapcraft login --with -
-          REVISION=$(snapcraft list-revisions rocketchat-server --arch amd64 | awk "/$SNAP_TRACK\/edge/ { print \$1; exit; }")
-          snapcraft release rocketchat-server $REVISION $SNAP_TRACK/candidate
-
-      - name: Rocket.Chat Notification
-        uses: RocketChat/Rocket.Chat.GitHub.Action.Notification@master
-        continue-on-error: true
-        with:
-          type: ${{ job.status }}
-          job_name: '*Snapcraft build*'
-          mention: 'here'
-          mention_if: 'failure'
-          url: ${{ secrets.RELEASE_IMAGES_ROCKETCHAT_WEBHOOK }}
+      - name: Run action
+        uses: .
