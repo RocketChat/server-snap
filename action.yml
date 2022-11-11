@@ -66,7 +66,7 @@ runs:
           return 1
         }
         [[ ${{ steps.prepare.outputs.candidate }} == 'false' ]] &&  # if candidate, don't commit
-          is_gt $current_version ${{ inputs.tag }} && echo "commit=true" >> $GITHUB_OUTPUT || true
+          is_gt ${{ inputs.tag }} $current_version && echo "commit=true" >> $GITHUB_OUTPUT || true
 
     # Repo will add the commit once the build is successful
     - name: "Update version"
