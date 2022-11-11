@@ -116,7 +116,7 @@ runs:
       if: "${{ steps.should.outputs.run == 'true' && steps.prepare.outputs.candidate == 'true' }}"
       shell: bash
       env:
-        SNAPSNAPCRAFT_STORE_CREDENTIALS: ${{ inputs.snapcraft-credential }}
+        SNAPCRAFT_STORE_CREDENTIALS: ${{ inputs.snapcraft-credential }}
       run: |
         snap_track=${{ steps.prepare.outputs.snap-track }}
         revision=$(snapcraft list-revisions rocketchat-server --arch amd64 | awk "/$snap_track\/edge/ { print \$1; exit; }")
