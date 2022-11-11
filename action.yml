@@ -107,8 +107,9 @@ runs:
     - name: "Upload to snapstore"
       if: "${{ steps.should.outputs.run == 'true' && inputs.snapcraft-credential != '' }}"
       uses: snapcore/action-publish@v1
+      env:
+        SNAPCRAFT_STORE_CREDENTIALS: ${{ inputs.snapcraft-credential }}
       with:
-        store_login: ${{ inputs.snapcraft-credential }}
         snap: ${{ steps.snap-build.outputs.snap }}
         release: ${{ format('{0}/edge', steps.prepare.outputs.snap-track) }}
 
