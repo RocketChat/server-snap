@@ -5,7 +5,6 @@ on:
 
 jobs:
   Prepare:
-    if: false
     outputs:
       versions-json: ${{ steps.only.outputs.run-for }}
     runs-on: ubuntu-latest
@@ -31,10 +30,10 @@ jobs:
           echo "run-for=$(jo version=$(jo -a ${versions[0]}))" >> $GITHUB_OUTPUT # FIXME: avoiding race condition
 
   BuildAndRelease:
-    #needs: [Prepare]
+    needs: [Prepare]
     runs-on: ubuntu-latest
-    #strategy:
-      #matrix: ${{ fromJSON(needs.Prepare.outputs.versions-json) }}
+    strategy:
+      matrix: ${{ fromJSON(needs.Prepare.outputs.versions-json) }}
     steps:
       - name: Clone repository
         uses: actions/checkout@v3
@@ -43,5 +42,5 @@ jobs:
         uses: ./
         with:
           snapcraft-credential: ${{ secrets.SNAPCRAFT_LOGIN }}
-          tag: '5.3.0' #${{ matrix.version }}
+          tag: ${{ matrix.version }}
           github-token: ${{ secrets.GH_TOKEN_PERSONAL }}
