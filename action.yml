@@ -87,7 +87,7 @@ runs:
       if: "${{ steps.should.outputs.commit == 'true' }}"
       uses: EndBug/add-and-commit@v9
       with:
-        add: rocketchat/snap/snapcraft.yml
+        add: rocketchat/snap/snapcraft.yaml
         message: "Bump Rocket.Chat version to ${{ inputs.tag }}"
         push: true
 
