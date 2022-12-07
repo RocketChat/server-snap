@@ -97,7 +97,7 @@ runs:
         sudo apt install jo -y
         export ROCKETCHAT_SNAP=$(realpath ${{ steps.snap-build.outputs.snap }})
         cd tests/
-        bash ./run_snap.bash
+        sudo bash ./run_snap.bash
 
     - name: "Commit snapcraft file"
       if: "${{ steps.should.outputs.commit == 'true' }}"
