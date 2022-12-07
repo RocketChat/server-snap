@@ -16,7 +16,6 @@ inputs:
       GitHub Token for creating the release and update repository
     required: true
 
-# TODO: add tests
 runs:
   using: composite
   steps:
@@ -82,6 +81,21 @@ runs:
       id: snap-build
       with:
         path: rocketchat/
+
+    - name: "Clone tests repository"
+      uses: actions/checkout@v3
+      with:
+        repository: debdutdeb/rocket.chat.tests
+        submodules: true
+        path: ./tests/
+
+    - name: "Run tests"
+      shell: bash
+      env:
+        ROCKETCHAT_TAG: ${{ inputs.tag }}
+      run: |
+        sudo apt install jo -y
+        bash ./tests/run_snap.bash
 
     - name: "Commit snapcraft file"
       if: "${{ steps.should.outputs.commit == 'true' }}"
