@@ -48,7 +48,7 @@ runs:
         &> /dev/null command -v yq || sudo apt install yq -y
         current_version="$(yq -e .version snap/snapcraft.yaml)"
         if [[ $current_version != ${{ inputs.tag }} ]]; then
-          for track in 4.x 5.x; do # Only allow these two tracks for now
+          for track in 4.x 5.x 6.x; do # Only allow these two tracks for now
             if [[ $track == $current_track ]]; then
               echo "run=true" >> $GITHUB_OUTPUT
               break
@@ -83,6 +83,7 @@ runs:
         path: rocketchat/
 
     - name: "Clone tests repository"
+      if: "${{ steps.should.outputs.run == 'true' }}"
       uses: actions/checkout@v3
       with:
         repository: debdutdeb/rocket.chat.tests
@@ -90,6 +91,7 @@ runs:
         path: ./tests/
 
     - name: "Run tests"
+      if: "${{ steps.should.outputs.run == 'true' }}"
       shell: bash
       env:
         ROCKETCHAT_TAG: ${{ inputs.tag }}
@@ -100,7 +102,7 @@ runs:
         sudo bash ./run_snap.bash
 
     - name: "Commit snapcraft file"
-      if: "${{ steps.should.outputs.commit == 'true' }}"
+      if: "${{ steps.should.outputs.run == 'true' && steps.should.outputs.commit == 'true' }}"
       uses: EndBug/add-and-commit@v9
       with:
         add: rocketchat/snap/snapcraft.yaml
