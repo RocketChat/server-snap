@@ -8,7 +8,7 @@ backup_if_enabled() {
   [[ $(snapctl get backup-on-refresh) == "enable" ]] && {
     backupdb.sh || {
       echo "failed to backup rocketchat database before refresh" \
-        > $SNAP_COMMON/refresh_$(date +"%Y%m%d.%H%M").log
+        >$SNAP_COMMON/refresh_$(date +"%Y%m%d.%H%M").log
     }
   }
 }
@@ -18,9 +18,12 @@ exec_pre_refresh_scripts() {
   # why do it the hard way?
   # why should i answer *you*?
   # this is *my* script, 👿
-  for script in `get_migrations`; do [[ $(awk -F/ '{ print $NF }' <<< $script) =~ ^([0-9]+)[^0-9a-zA-Z\/]{1}.+ ]] && scripts+=([$(( 10#${BASH_REMATCH[1]} ))]=$script); done
+  for script in $(get_migrations); do [[ $(awk -F/ '{ print $NF }' <<<$script) =~ ^([0-9]+)[^0-9a-zA-Z\/]{1}.+ ]] && scripts+=([$((10#${BASH_REMATCH[1]}))]=$script); done
   # scripts should now be in order
-  for script in ${scripts[@]}; do (source $script; start) || error "pre refresh migration script ${script#$SNAP/migrations/$dirname/}"; done
+  for script in "${scripts[@]}"; do (
+    source "$script"
+    start
+  ) || error "pre refresh migration script ${script#$SNAP/migrations/$dirname/}"; done
 }
 
 main() {
