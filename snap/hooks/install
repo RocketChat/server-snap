@@ -63,13 +63,12 @@ init_default_snap_configurations() {
   snapctl set ignore-errors=false
 }
 
-
 init_mongod_feature_compatibility_version() {
   set_feature_compatibility $(mongod_version_excluding_patch)
 }
 
 init_extra_environment_variables() {
-  cat>$SNAP_DATA/Rocker.Chat.Extra.env<<EOF
+  cat >$SNAP_DATA/Rocker.Chat.Extra.env <<EOF
 # DO NOT UPDATE unless you know what you're doing
 XDG_DATA_HOME=\$SNAP/usr/share
 FONTCONFIG_PATH=\$SNAP/etc/fonts/config.d
@@ -78,7 +77,14 @@ BABEL_CACHE_DIR=/tmp
 EOF
 }
 
+check_avx() {
+  (($(grep -Ewc 'avx2?' /proc/cpuinfo) == 0)) &&
+    error "Your cpu does not support avx or avx2 instructions, which is required to run mongo 5.x, shipped with the next version of this snap." ||
+    return 0
+}
+
 main() {
+  check_avx
   init_default_snap_configurations
   init_caddy_conf
   init_mongod_conf
