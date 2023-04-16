@@ -1,46 +1,188 @@
 name: Update snap release
 
 on:
-  workflow_dispatch:
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+    secrets:
+      snapcraft-credential:
+        required: true
+      github-token:
+        required: true
+
+# TODO need to make this workflow work according to snap standard of release making.
+# But for that, we also need a releases endpoint and primary release process update.
+# Else, maybe time to go back to the snap plugin we have.
+
+env:
+  SNAP_REPO: 'RocketChat/rocketchat-server-snap'
+  ROCKETCHAT_SNAP: '/tmp/rocket.chat.snap'
 
 jobs:
   Prepare:
     outputs:
-      versions-json: ${{ steps.only.outputs.run-for }}
+      snap-track: ${{ steps.prepare.outputs.snap-track }}
+      commit: ${{ steps.prepare.outputs.commit }}
+      run: ${{ steps.prepare.outputs.run }}
+      candidate: ${{ steps.prepare.outputs.candidate }}
     runs-on: ubuntu-latest
     steps:
-      - name: Get latest tags
-        id: only
-        shell: bash
-        env:
-          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_LOGIN }}
-        run: |
-          latest_release=$(curl -s https://releases.rocket.chat/latest/info | jq -r .tag)
-          echo "latest_release: $latest_release"
-          candidate_release=$(curl -s https://releases.rocket.chat/rc/info | jq .tag -r)
-          echo "candidate_release: $candidate_release"
-          &>/dev/null command -v snapcraft || sudo snap install snapcraft --classic --stable
-          &>/dev/null command -v jo || sudo apt install jo -y
-          versions=()
-          snapcraft list-revisions rocketchat-server --arch amd64 | grep -q $latest_release ||
-            versions+=($latest_release)
-          snapcraft list-revisions rocketchat-server --arch amd64 | grep -q $candidate_release ||
-            versions+=($candidate_release)
-          echo "To run for: ${versions[@]}"
-          echo "run-for=$(jo version=$(jo -a ${versions[0]}))" >> $GITHUB_OUTPUT # FIXME: avoiding race condition
+      - name: 'Clone repository'
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ env.SNAP_REPO }}
 
-  BuildAndRelease:
+      - name: 'Prepare for next steps'
+        id: prepare
+        shell: bash
+        run: |
+          version=${{ inputs.tag }}
+          snap_track="${version:0:1}.x"
+          echo "snap-track: $snap_track"
+
+          grep -q "rc" <<< "$version" && candidate=true || candidate=false
+          echo "candidate: $candidate"
+
+          echo "candidate=$candidate" >> $GITHUB_OUTPUT
+          echo "snap-track=$snap_track" >> $GITHUB_OUTPUT
+
+          echo "run=false" >> $GITHUB_OUTPUT
+          echo "commit=false" >> $GITHUB_OUTPUT
+
+          &> /dev/null command -v yq || sudo apt-get --no-install-recommends install yq -y
+          current_version="$(yq -e .version snap/snapcraft.yaml)"
+          if [[ $current_version != $version ]]; then
+            echo "run=true" >> $GITHUB_OUTPUT
+          fi
+          echo "run: $run"
+
+          is_gt() {
+            local v1=(${1//./ })
+            local v2=(${2//./ })
+            (( ${v1[0]} > ${v2[0]} )) && return 0
+            (( ${v1[1]} > ${v2[1]} )) && return 0
+            (( ${v1[2]} > ${v2[2]} )) && return 0
+            return 1
+          }
+          if [[ $candidate == 'false' ]] &&  is_gt $version $current_version; then # if candidate, don't commit
+            echo "commit=true" >> $GITHUB_OUTPUT
+          fi
+          echo "commit: $commit"
+
+  Build:
     needs: [Prepare]
     runs-on: ubuntu-latest
-    strategy:
-      matrix: ${{ fromJSON(needs.Prepare.outputs.versions-json) }}
+    if: "${{ needs.Prepare.outputs.run == 'true' }}"
     steps:
       - name: Clone repository
         uses: actions/checkout@v3
-
-      - name: Run main action
-        uses: ./
         with:
-          snapcraft-credential: ${{ secrets.SNAPCRAFT_LOGIN }}
-          tag: ${{ matrix.version }}
-          github-token: ${{ secrets.GH_TOKEN_PERSONAL }}
+          repository: ${{ env.SNAP_REPO }}
+
+      - name: 'Update version'
+        shell: bash
+        run: |
+          sed -i -r '/^version:/ s/ .+/ ${{ inputs.tag }}/' ./snap/snapcraft.yaml
+
+      - name: 'Build the Snap package'
+        uses: snapcore/action-build@v1
+        id: snap-build
+
+      - name: Upload snap
+        uses: actions/upload-artifact@v3
+        with:
+          name: snap
+          path: ${{ steps.snap-build.outputs.snap }}
+
+  SnapTest:
+    needs:
+      - Prepare
+      - Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download snap
+        uses: actions/download-artifact@v3
+        with:
+          name: snap
+          path: ${{ env.ROCKETCHAT_SNAP }}
+
+      - name: 'Clone tests repository'
+        uses: actions/checkout@v3
+        with:
+          repository: debdutdeb/rocket.chat.tests
+          submodules: true
+
+      - name: 'Run tests'
+        shell: bash
+        env:
+          ROCKETCHAT_TAG: ${{ inputs.tag }}
+        run: |
+          sudo apt-get --no-install-recommends install jo -y
+          sudo bash ./run_snap.bash
+
+  PublishSnap:
+    needs:
+      - SnapTest
+      - Prepare
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download snap
+        uses: actions/download-artifact@v3
+        with:
+          name: snap
+          path: ${{ env.ROCKETCHAT_SNAP}}
+
+      - name: 'Upload to snapstore'
+        uses: snapcore/action-publish@v1
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.snapcraft-credential }}
+        with:
+          snap: ${{ env.ROCKETCHAT_SNAP }}
+          release: ${{ format('{0}/edge', needs.Prepare.outputs.snap-track) }}
+
+      - name: 'Promote if candidate'
+        if: "${{ needs.Prepare.outputs.candidate == 'true' }}"
+        shell: bash
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.snapcraft-credential }}
+        run: |
+          snap_track=${{ needs.Prepare.outputs.snap-track }}
+          revision=$(snapcraft list-revisions rocketchat-server --arch amd64 | awk "/$snap_track\/edge/ { print \$1; exit; }")
+          snapcraft release rocketchat-server $revision $snap_track/candidate
+
+      - name: 'Create release with artifact'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{ env.ROCKETCHAT_SNAP }}
+          prerelease: false
+          repository: ${{ env.SNAP_REPO }}
+          token: ${{ secrets.github-token }}
+          name: ${{ inputs.tag }}
+          tag_name: ${{ inputs.tag }}
+          body: ${{ format('https://github.com/RocketChat/Rocket.Chat/releases/{0}', inputs.tag) }}
+          draft: false
+
+  RepoActions:
+    runs-on: ubuntu-latest
+    needs:
+      - Prepare
+      - PublishSnap
+    if: "${{ needs.Prepare.outputs.commit == 'true' }}"
+    steps:
+      - name: 'Clone snap repo'
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ env.SNAP_REPO }}
+
+      - name: 'Update version'
+        shell: bash
+        run: sed -i -r '/^version:/ s/ .+/ ${{ inputs.tag }}/' ./snap/snapcraft.yaml
+
+      - name: 'Commit snapcraft file'
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: ./snap/snapcraft.yaml
+          message: 'Bump Rocket.Chat version to ${{ inputs.tag }}'
+          push: true

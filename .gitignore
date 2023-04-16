@@ -8,3 +8,4 @@ Dockerfile
 mount/
 *.assert
 *.xdelta3*
+.idea/
