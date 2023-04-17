@@ -51,7 +51,6 @@ jobs:
           echo "run=false" >> $GITHUB_OUTPUT
           echo "commit=false" >> $GITHUB_OUTPUT
 
-          &> /dev/null command -v yq || sudo apt-get --no-install-recommends install yq -y
           current_version="$(yq -e .version snap/snapcraft.yaml)"
           if [[ $current_version != $version ]]; then
             echo "run=true" >> $GITHUB_OUTPUT
@@ -72,7 +71,8 @@ jobs:
           echo "commit: $commit"
 
   Build:
-    needs: [Prepare]
+    needs:
+      - Prepare
     runs-on: ubuntu-latest
     if: "${{ needs.Prepare.outputs.run == 'true' }}"
     steps:
@@ -120,7 +120,7 @@ jobs:
           ROCKETCHAT_TAG: ${{ inputs.tag }}
         run: |
           sudo apt-get --no-install-recommends install jo -y
-          sudo bash ./run_snap.bash
+          bash ./run_snap.bash
 
   PublishSnap:
     needs:
