@@ -18,7 +18,6 @@ on:
 
 env:
   SNAP_REPO: 'RocketChat/rocketchat-server-snap'
-  ROCKETCHAT_SNAP: '/tmp/rocket.chat.snap'
 
 jobs:
   prepare:
@@ -48,14 +47,15 @@ jobs:
           echo "candidate=$candidate" >> $GITHUB_OUTPUT
           echo "snap-track=$snap_track" >> $GITHUB_OUTPUT
 
-          echo "run=false" >> $GITHUB_OUTPUT
-          echo "commit=false" >> $GITHUB_OUTPUT
+          run=false
+          commit=false
 
           current_version="$(yq -e .version snap/snapcraft.yaml)"
           if [[ $current_version != $version ]]; then
-            echo "run=true" >> $GITHUB_OUTPUT
+            run=true
           fi
           echo "run: $run"
+          echo "run=$run" >> $GITHUB_OUTPUT
 
           is_gt() {
             local v1=(${1//./ })
@@ -66,13 +66,16 @@ jobs:
             return 1
           }
           if [[ $candidate == 'false' ]] &&  is_gt $version $current_version; then # if candidate, don't commit
-            echo "commit=true" >> $GITHUB_OUTPUT
+            commit=true
           fi
           echo "commit: $commit"
+          echo "commit=$commit" >>$GITHUB_OUTPUT
 
   build:
     needs:
       - prepare
+    outputs:
+      snap-basename: ${{ steps.set-file-name.outputs.filename }}
     runs-on: ubuntu-latest
     if: "${{ needs.prepare.outputs.run == 'true' }}"
     steps:
@@ -96,17 +99,26 @@ jobs:
           name: snap
           path: ${{ steps.snap-build.outputs.snap }}
 
+      - name: Set snap file name
+        id: set-file-name
+        run: |
+          file_name=$(basename ${{ steps.snap-build.outputs.snap }})
+          echo "filename: $file_name"
+          echo "filename=$file_name" >>$GITHUB_OUTPUT
+
   can-i-run:
     needs:
       - prepare
       - build
+    env:
+      ROCKETCHAT_SNAP: ${{ format('/tmp/{0}', needs.build.outputs.snap-basename) }}
     runs-on: ubuntu-latest
     steps:
       - name: Download snap
         uses: actions/download-artifact@v3
         with:
           name: snap
-          path: ${{ env.ROCKETCHAT_SNAP }}
+          path: /tmp
 
       - name: 'Clone tests repository'
         uses: actions/checkout@v3
@@ -119,20 +131,23 @@ jobs:
         env:
           ROCKETCHAT_TAG: ${{ inputs.tag }}
         run: |
-          sudo apt-get --no-install-recommends install jo -y
+          sudo apt-get --no-install-recommends install jo jq -y
           bash ./run_snap.bash
 
   publish-snap:
     needs:
       - can-i-run
       - prepare
+      - build
+    env:
+      ROCKETCHAT_SNAP: ${{ format('/tmp/{0}', needs.build.outputs.snap-basename) }}
     runs-on: ubuntu-latest
     steps:
       - name: Download snap
         uses: actions/download-artifact@v3
         with:
           name: snap
-          path: ${{ env.ROCKETCHAT_SNAP}}
+          path: /tmp
 
       - name: 'Upload to snapstore'
         uses: snapcore/action-publish@v1
@@ -164,7 +179,7 @@ jobs:
           body: ${{ format('https://github.com/RocketChat/Rocket.Chat/releases/{0}', inputs.tag) }}
           draft: false
 
-  RepoActions:
+  repo-actions:
     runs-on: ubuntu-latest
     needs:
       - prepare
