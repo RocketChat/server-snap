@@ -21,7 +21,7 @@ env:
   ROCKETCHAT_SNAP: '/tmp/rocket.chat.snap'
 
 jobs:
-  Prepare:
+  prepare:
     outputs:
       snap-track: ${{ steps.prepare.outputs.snap-track }}
       commit: ${{ steps.prepare.outputs.commit }}
@@ -70,11 +70,11 @@ jobs:
           fi
           echo "commit: $commit"
 
-  Build:
+  build:
     needs:
-      - Prepare
+      - prepare
     runs-on: ubuntu-latest
-    if: "${{ needs.Prepare.outputs.run == 'true' }}"
+    if: "${{ needs.prepare.outputs.run == 'true' }}"
     steps:
       - name: Clone repository
         uses: actions/checkout@v3
@@ -96,10 +96,10 @@ jobs:
           name: snap
           path: ${{ steps.snap-build.outputs.snap }}
 
-  SnapTest:
+  can-i-run:
     needs:
-      - Prepare
-      - Build
+      - prepare
+      - build
     runs-on: ubuntu-latest
     steps:
       - name: Download snap
@@ -122,10 +122,10 @@ jobs:
           sudo apt-get --no-install-recommends install jo -y
           bash ./run_snap.bash
 
-  PublishSnap:
+  publish-snap:
     needs:
-      - SnapTest
-      - Prepare
+      - can-i-run
+      - prepare
     runs-on: ubuntu-latest
     steps:
       - name: Download snap
@@ -140,15 +140,15 @@ jobs:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.snapcraft-credential }}
         with:
           snap: ${{ env.ROCKETCHAT_SNAP }}
-          release: ${{ format('{0}/edge', needs.Prepare.outputs.snap-track) }}
+          release: ${{ format('{0}/edge', needs.prepare.outputs.snap-track) }}
 
       - name: 'Promote if candidate'
-        if: "${{ needs.Prepare.outputs.candidate == 'true' }}"
+        if: "${{ needs.prepare.outputs.candidate == 'true' }}"
         shell: bash
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.snapcraft-credential }}
         run: |
-          snap_track=${{ needs.Prepare.outputs.snap-track }}
+          snap_track=${{ needs.prepare.outputs.snap-track }}
           revision=$(snapcraft list-revisions rocketchat-server --arch amd64 | awk "/$snap_track\/edge/ { print \$1; exit; }")
           snapcraft release rocketchat-server $revision $snap_track/candidate
 
@@ -167,9 +167,9 @@ jobs:
   RepoActions:
     runs-on: ubuntu-latest
     needs:
-      - Prepare
-      - PublishSnap
-    if: "${{ needs.Prepare.outputs.commit == 'true' }}"
+      - prepare
+      - publish-snap
+    if: "${{ needs.prepare.outputs.commit == 'true' }}"
     steps:
       - name: 'Clone snap repo'
         uses: actions/checkout@v3
