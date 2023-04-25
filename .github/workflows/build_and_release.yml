@@ -152,17 +152,17 @@ jobs:
           revision=$(snapcraft list-revisions rocketchat-server --arch amd64 | awk "/$snap_track\/edge/ { print \$1; exit; }")
           snapcraft release rocketchat-server $revision $snap_track/candidate
 
-      - name: 'Create release with artifact'
-        uses: softprops/action-gh-release@v1
-        with:
-          files: ${{ env.ROCKETCHAT_SNAP }}
-          prerelease: false
-          repository: ${{ env.SNAP_REPO }}
-          token: ${{ secrets.github-token }}
-          name: ${{ inputs.tag }}
-          tag_name: ${{ inputs.tag }}
-          body: ${{ format('https://github.com/RocketChat/Rocket.Chat/releases/{0}', inputs.tag) }}
-          draft: false
+      # - name: 'Create release with artifact'
+      #   uses: softprops/action-gh-release@v1
+      #   with:
+      #     files: ${{ env.ROCKETCHAT_SNAP }}
+      #     prerelease: false
+      #     repository: ${{ env.SNAP_REPO }}
+      #     token: ${{ secrets.github-token }}
+      #     name: ${{ inputs.tag }}
+      #     tag_name: ${{ inputs.tag }}
+      #     body: ${{ format('https://github.com/RocketChat/Rocket.Chat/releases/{0}', inputs.tag) }}
+      #     draft: false
 
   RepoActions:
     runs-on: ubuntu-latest
