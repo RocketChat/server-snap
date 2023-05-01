@@ -1,0 +1,40 @@
+
+name: (OVERRIDE WARNING) Force release new revision
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: 'Build the Snap package'
+        uses: snapcore/action-build@v1
+        id: snap-build
+
+      - name: 'Upload to snapstore'
+        uses: snapcore/action-publish@v1
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        with:
+          snap: ${{ steps.snap-build.outputs.snap }}
+          release: ${{ format('{0}/edge', github.ref_name) }}
+
+      - name: 'Promote to other risk levels'
+        shell: bash
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        run: |
+          track=${{ github.ref_name }}
+          version="$(awk "/version:/ { print \$2 }" snap/snapcraft.yaml)"
+          revision="$(snapcraft list-revisions rocketchat-server --arch amd64 | awk "/$track\/edge/ { print \$1; exit; }")"
+          echo "revision: $revision"
+          echo "version: $version"
+          echo "track: $track"
+          snapcraft release rocketchat-server "$revision" "$track/stable"
+          grep -Eq 'rc$' <<<"$version" && snapcraft release rocketchat-server "$revision" "$track/candidate"
