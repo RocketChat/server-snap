@@ -83,6 +83,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: ${{ env.SNAP_REPO }}
+          ref: ${{ needs.prepare.outputs.snap-track }}
 
       - name: 'Update version'
         shell: bash
@@ -178,6 +179,9 @@ jobs:
           tag_name: ${{ inputs.tag }}
           body: ${{ format('https://github.com/RocketChat/Rocket.Chat/releases/{0}', inputs.tag) }}
           draft: false
+          fail_on_unmatched_files: true
+          target_commitish: ${{ needs.prepare.outputs.snap-track }}
+          generate_release_notes: true
 
   repo-actions:
     runs-on: ubuntu-latest
@@ -191,6 +195,7 @@ jobs:
         with:
           repository: ${{ env.SNAP_REPO }}
           token: ${{ secrets.github-token }}
+          ref: ${{ needs.prepare.outputs.snap-track }}
 
       - name: 'Update version'
         shell: bash
