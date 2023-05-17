@@ -1,12 +1,12 @@
 name: rocketchat-server
 title: Rocket.Chat Server
 base: core20
-version: 6.1.5
+version: 5.4.5
 summary: An Open Source Slack Alternative
 description: |
   Have your own Slack like online chat, built with Meteor. https://rocket.chat/
 
-epoch: 10
+epoch: 10*
 
 grade: stable
 confinement: strict
@@ -77,8 +77,8 @@ parts:
       # - on amd64: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1804-3.6.23.tgz
       # - on amd64: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1804-4.0.27.tgz
       #- on amd64: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu1804-4.2.17.tgz
-      #- on amd64: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu2004-4.4.15.tgz
-      - on amd64: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu2004-5.0.15.tgz
+      - on amd64: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu2004-4.4.15.tgz
+      # - on amd64: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu2004-5.0.15.tgz
       # - on arm64: https://fastdl.mongodb.org/linux/mongodb-linux-arm64-ubuntu1604-3.6.23.tgz
       - on arm64: https://fastdl.mongodb.org/linux/mongodb-linux-arm64-ubuntu1604-4.0.28.tgz
     stage-packages:
@@ -110,8 +110,8 @@ parts:
   mongodb-tools:
     plugin: dump
     source:
-      #- on amd64: https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2004-x86_64-100.5.0.tgz
-      - on amd64: https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2004-x86_64-100.7.0.tgz
+      - on amd64: https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2004-x86_64-100.5.0.tgz
+      # - on amd64: https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2004-x86_64-100.7.0.tgz
       # - on arm64: https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2004-arm64-100.5.0.tgz
     stage:
       - bin/mongodump
