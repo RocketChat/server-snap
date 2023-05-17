@@ -49,7 +49,8 @@ jobs:
         run: |
           sudo apt-get --no-install-recommends install jo jq -y
           export ROCKETCHAT_SNAP=$(realpath ${{ steps.snap-build.outputs.snap }})
-          bash ./tests/run_snap.bash
+          cd tests &&
+            bash ./run_snap.bash
 
       - name: 'Upload to snapstore'
         uses: snapcore/action-publish@v1
