@@ -11,9 +11,11 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: ${{ github.ref_name }}
+          path: server-snap
             
       - name: Set variables
         id: prepare
+        working-directory: server-snap
         shell: bash
         run: |
           track="${{ github.ref_name }}"
@@ -30,20 +32,24 @@ jobs:
       - name: 'Build the Snap package'
         uses: snapcore/action-build@v1
         id: snap-build
+        with:
+          path: server-snap
           
       - name: 'Clone tests repository'
         uses: actions/checkout@v3
         with:
           repository: debdutdeb/rocket.chat.tests
           submodules: true
+          path: tests
 
       - name: 'Run tests'
         shell: bash
+        working-directory: tests
         env:
           ROCKETCHAT_TAG: ${{ steps.prepare.outputs.current-version }}
-          ROCKETCHAT_SNAP: ${{ steps.snap-build.outputs.snap }}
         run: |
           sudo apt-get --no-install-recommends install jo jq -y
+          export ROCKETCHAT_SNAP=$(realpath ${{ steps.snap-build.outputs.snap }})
           bash ./run_snap.bash
 
       - name: 'Upload to snapstore'
@@ -58,7 +64,7 @@ jobs:
         if: always()
         uses: RocketChat/Rocket.Chat.GitHub.Action.Notification@master
         with:
-          job_name: '*Snap ${{ steps.prepare.outputs.current-version }} tests*'
+          job_name: '*Snap ${{ steps.prepare.outputs.current-version }} publish*'
           url: ${{ secrets.ROCKETCHAT_WEBHOOK }}
           type: ${{ job.status }}
           mention: 'debdut.chakraborty'
