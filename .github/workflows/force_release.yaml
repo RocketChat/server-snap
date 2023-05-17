@@ -58,7 +58,7 @@ jobs:
         if: always()
         uses: RocketChat/Rocket.Chat.GitHub.Action.Notification@master
         with:
-          job_name: '*Snap ${{ steps.prepare.outputs.current-version }} tests*'
+          job_name: '*Snap ${{ steps.prepare.outputs.current-version }} release*'
           url: ${{ secrets.ROCKETCHAT_WEBHOOK }}
           type: ${{ job.status }}
           mention: 'debdut.chakraborty'
