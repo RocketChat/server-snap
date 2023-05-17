@@ -114,6 +114,7 @@ jobs:
           echo "filename=$file_name" >>$GITHUB_OUTPUT
 
       - name: Notify core team
+        if: always()
         uses: RocketChat/Rocket.Chat.GitHub.Action.Notification@master
         with:
           job_name: '*Snap build status*'
@@ -151,6 +152,7 @@ jobs:
           bash ./run_snap.bash
 
       - name: Notify core team
+        if: always()
         uses: RocketChat/Rocket.Chat.GitHub.Action.Notification@master
         with:
           job_name: '*Snap build tests status*'
@@ -208,6 +210,7 @@ jobs:
           generate_release_notes: true
 
       - name: Notify core team
+        if: always()
         uses: RocketChat/Rocket.Chat.GitHub.Action.Notification@master
         with:
           job_name: '*Snap publish status*'
