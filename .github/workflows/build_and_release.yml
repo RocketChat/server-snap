@@ -40,22 +40,23 @@ jobs:
           version=${{ inputs.tag }}
           snap_track="${version:0:1}.x"
           echo "snap-track: $snap_track"
-
-          grep -q "rc" <<< "$version" && candidate=true || candidate=false
-          echo "candidate: $candidate"
-
-          echo "candidate=$candidate" >> $GITHUB_OUTPUT
           echo "snap-track=$snap_track" >> $GITHUB_OUTPUT
 
+          candidate=false
           run=false
           commit=false
 
-          current_version="$(yq -e .version snap/snapcraft.yaml)"
-          if [[ $current_version != $version ]]; then
-            run=true
+          if [[ $version =~ ^([0-9]+\.[0-9]+\.[0-9]+)-rc\.[0-9]+$ ]]; then
+            # if version is release candidate, we need to strip out the "rc.+" part to know if we actually should push/run or not
+            # we never expect a release candidate and stable release of the same major.minor to be in race
+            candidate=true
+            version=${BASH_REMATCH[1]}
+            echo "version: $version"
           fi
-          echo "run: $run"
-          echo "run=$run" >> $GITHUB_OUTPUT
+          echo "candidate: $candidate"
+          echo "candidate=$candidate" >> $GITHUB_OUTPUT
+
+          current_version="$(yq -e .version snap/snapcraft.yaml)" # no release candidate
 
           is_gt() {
             local v1=(${1//./ })
@@ -65,10 +66,13 @@ jobs:
             (( ${v1[2]} > ${v2[2]} )) && return 0
             return 1
           }
-          if [[ $candidate == 'false' ]] &&  is_gt $version $current_version; then # if candidate, don't commit
-            commit=true
+          if is_gt $version $current_version; then
+            run=true
+            if [[ $candidate == 'false' ]]; then commit=true; fi
           fi
+          echo "run: $run"
           echo "commit: $commit"
+          echo "run=$run" >> $GITHUB_OUTPUT
           echo "commit=$commit" >>$GITHUB_OUTPUT
 
   build:
