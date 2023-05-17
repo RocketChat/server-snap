@@ -117,7 +117,7 @@ jobs:
         if: always()
         uses: RocketChat/Rocket.Chat.GitHub.Action.Notification@master
         with:
-          job_name: '*Snap build status*'
+          job_name: '*Snap ${{ inputs.tag }} build*'
           url: ${{ secrets.rocketchat-webhook }}
           type: ${{ job.status }}
           mention: 'debdut.chakraborty'
@@ -155,7 +155,7 @@ jobs:
         if: always()
         uses: RocketChat/Rocket.Chat.GitHub.Action.Notification@master
         with:
-          job_name: '*Snap build tests status*'
+          job_name: '*Snap ${{ inputs.tag }} tests*'
           url: ${{ secrets.rocketchat-webhook }}
           type: ${{ job.status }}
           mention: 'debdut.chakraborty'
@@ -213,7 +213,7 @@ jobs:
         if: always()
         uses: RocketChat/Rocket.Chat.GitHub.Action.Notification@master
         with:
-          job_name: '*Snap publish status*'
+          job_name: '*Snap ${{ inputs.tag }} publish*'
           url: ${{ secrets.rocketchat-webhook }}
           type: ${{ job.status }}
           mention: 'debdut.chakraborty'
