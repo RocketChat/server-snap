@@ -8,9 +8,12 @@ on:
         required: true
         type: string
     outputs:
-      snap-basename: ${{ jobs.build.outputs.snap-basename }}
-      snap-track: ${{ jobs.prepare.outputs.snap-track }}
-      commit: ${{ jobs.prepare.outputs.commit }}
+      snap-basename:
+        value: ${{ jobs.build.outputs.snap-basename }}
+      snap-track:
+        value: ${{ jobs.prepare.outputs.snap-track }}
+      commit:
+        value: ${{ jobs.prepare.outputs.commit }}
       # TODO add candidate
   workflow_dispatch:
     inputs:
