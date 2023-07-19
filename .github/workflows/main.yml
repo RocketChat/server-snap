@@ -19,7 +19,7 @@ jobs:
       tag: ${{ inputs.tag }}
 
   release:
-    if: '! contains(inputs.tag, "rc")'
+    if: '! contains(inputs.tag, ''rc'')'
     needs:
       - build-and-test
     uses: RocketChat/server-snap/.github/workflows/release.yml@develop
