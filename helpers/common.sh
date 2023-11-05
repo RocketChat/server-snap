@@ -31,3 +31,8 @@ better_jq_.() { _jq "$@"; }
 get_ip() { getent hosts ${1?} | awk '{ print $1 }'; }
 
 empty() { [[ -z $1 ]]; }
+
+has_avx() {
+  if [[ $SNAP_ARCH == "arm64" ]]; then return 0; fi
+  if (($(grep -Ewc 'avx2?' /proc/cpuinfo) == 0)); then return 0; else return 1; fi
+}
