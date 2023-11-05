@@ -125,7 +125,7 @@ parts:
       #- on amd64: https://nodejs.org/download/release/v14.19.3/node-v14.19.3-linux-x64.tar.xz
       - on amd64: https://nodejs.org/download/release/v14.21.2/node-v14.21.2-linux-x64.tar.xz
         #- on arm64: https://nodejs.org/download/release/v12.22.8/node-v12.22.8-linux-arm64.tar.gz
-      - on arm64: https://nodejs.org/download/release/v14.18.3/node-v14.19.3-linux-arm64.tar.gz
+      - on arm64: https://nodejs.org/download/release/v14.19.3/node-v14.19.3-linux-arm64.tar.gz
     stage:
       - bin
       - include
@@ -227,9 +227,13 @@ parts:
       - fontconfig
     override-build: |
       cd programs/server
-      npm install @rocket.chat/forked-matrix-sdk-crypto-nodejs@0.1.0-beta.13 --no-save
-      rm -rf npm/node_modules/@rocket.chat/forked-matrix-sdk-crypto-nodejs
-      mv -fu node_modules/@rocket.chat/forked-matrix-sdk-crypto-nodejs npm/node_modules/@rocket.chat/
+      export METEOR_SKIP_NPM_REBUILD=1
+      if [ "$SNAP_ARCH" = "arm64" ]; then
+        npm install @rocket.chat/forked-matrix-sdk-crypto-nodejs@0.1.0-beta.13 --no-save
+        rm -rf npm/node_modules/@rocket.chat/forked-matrix-sdk-crypto-nodejs
+        mv -fu node_modules/@rocket.chat/forked-matrix-sdk-crypto-nodejs npm/node_modules/@rocket.chat/
+        export METEOR_SKIP_NPM_REBUILD=0
+      fi
       npm install --production --unsafe-perm
       cd ../..
       snapcraftctl build
