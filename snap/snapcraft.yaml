@@ -232,7 +232,7 @@ parts:
         npm install @rocket.chat/forked-matrix-sdk-crypto-nodejs@0.1.0-beta.13 --no-save
         rm -rf npm/node_modules/@rocket.chat/forked-matrix-sdk-crypto-nodejs
         mv -fu node_modules/@rocket.chat/forked-matrix-sdk-crypto-nodejs npm/node_modules/@rocket.chat/
-        export METEOR_SKIP_NPM_REBUILD=0
+        unset METEOR_SKIP_NPM_REBUILD
       fi
       npm install --production --unsafe-perm
       cd ../..
