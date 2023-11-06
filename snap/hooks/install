@@ -1,6 +1,7 @@
 #!/bin/bash
 
 source $SNAP/helpers/mongo.sh
+source $SNAP/helpers/common.sh
 
 init_replicaset() {
   mongo_eval_with_error_check '
@@ -78,9 +79,11 @@ EOF
 }
 
 check_avx() {
-  (($(grep -Ewc 'avx2?' /proc/cpuinfo) == 0)) &&
-    error "Your cpu does not support avx or avx2 instructions, which is required to run mongo 5.x, shipped with the next version of this snap." ||
-    return 0
+  if ! has_avx; then
+    error "Your cpu does not support avx or avx2 instructions, which is required to run mongo 5.x, shipped with the next version of this snap."
+    return 1
+  fi
+  return 0
 }
 
 main() {
