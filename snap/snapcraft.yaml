@@ -6,7 +6,7 @@ summary: An Open Source Slack Alternative
 description: |
   Have your own Slack like online chat, built with Meteor. https://rocket.chat/
 
-epoch: 10
+epoch: 6*
 
 grade: stable
 confinement: strict
@@ -80,14 +80,13 @@ parts:
       #- on amd64: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu2004-4.4.15.tgz
       - on amd64: https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu2004-5.0.15.tgz
       # - on arm64: https://fastdl.mongodb.org/linux/mongodb-linux-arm64-ubuntu1604-3.6.23.tgz
-      - on arm64: https://fastdl.mongodb.org/linux/mongodb-linux-arm64-ubuntu1604-4.0.28.tgz
+      - on arm64: https://fastdl.mongodb.org/linux/mongodb-linux-aarch64-ubuntu2004-5.0.22.tgz
     stage-packages:
       # For the dependecies:
       # https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu-tarball/#install-mongodb-community-edition
       - openssl
       - liblzma5
-      - on amd64: [libcurl4]
-      - on arm64: [libcurl3]
+      - libcurl4
     filesets:
       excluded:
         - -LICENSE-Community.txt
@@ -112,7 +111,7 @@ parts:
     source:
       #- on amd64: https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2004-x86_64-100.5.0.tgz
       - on amd64: https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2004-x86_64-100.7.0.tgz
-      # - on arm64: https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2004-arm64-100.5.0.tgz
+      - on arm64: https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2004-arm64-100.9.0.tgz
     stage:
       - bin/mongodump
       - bin/mongorestore
@@ -125,7 +124,7 @@ parts:
       #- on amd64: https://nodejs.org/download/release/v14.19.3/node-v14.19.3-linux-x64.tar.xz
       - on amd64: https://nodejs.org/download/release/v14.21.2/node-v14.21.2-linux-x64.tar.xz
         #- on arm64: https://nodejs.org/download/release/v12.22.8/node-v12.22.8-linux-arm64.tar.gz
-      - on arm64: https://nodejs.org/download/release/v14.18.3/node-v14.18.3-linux-arm64.tar.gz
+      - on arm64: https://nodejs.org/download/release/v14.21.3/node-v14.21.3-linux-arm64.tar.gz
     stage:
       - bin
       - include
