@@ -11,8 +11,6 @@ on:
         required: true
       github-token:
         required: true
-      rocketchat-webhook:
-        required: true
 
 # TODO need to make this workflow work according to snap standard of release making.
 # But for that, we also need a releases endpoint and primary release process update.
@@ -113,16 +111,6 @@ jobs:
           echo "filename: $file_name"
           echo "filename=$file_name" >>$GITHUB_OUTPUT
 
-      - name: Notify core team
-        if: always()
-        uses: RocketChat/Rocket.Chat.GitHub.Action.Notification@master
-        with:
-          job_name: '*Snap ${{ inputs.tag }} build*'
-          url: ${{ secrets.rocketchat-webhook }}
-          type: ${{ job.status }}
-          mention: 'debdut.chakraborty'
-          mention_if: failure
-
   can-i-run:
     needs:
       - prepare
@@ -150,16 +138,6 @@ jobs:
         run: |
           sudo apt-get --no-install-recommends install jo jq -y
           bash ./run_snap.bash
-
-      - name: Notify core team
-        if: always()
-        uses: RocketChat/Rocket.Chat.GitHub.Action.Notification@master
-        with:
-          job_name: '*Snap ${{ inputs.tag }} tests*'
-          url: ${{ secrets.rocketchat-webhook }}
-          type: ${{ job.status }}
-          mention: 'debdut.chakraborty'
-          mention_if: failure
 
   publish-snap:
     needs:
@@ -208,16 +186,6 @@ jobs:
           fail_on_unmatched_files: true
           target_commitish: ${{ needs.prepare.outputs.snap-track }}
           generate_release_notes: true
-
-      - name: Notify core team
-        if: always()
-        uses: RocketChat/Rocket.Chat.GitHub.Action.Notification@master
-        with:
-          job_name: '*Snap ${{ inputs.tag }} publish*'
-          url: ${{ secrets.rocketchat-webhook }}
-          type: ${{ job.status }}
-          mention: 'debdut.chakraborty'
-          mention_if: failure
 
   repo-actions:
     runs-on: ubuntu-latest
