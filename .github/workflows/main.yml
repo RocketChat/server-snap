@@ -1,0 +1,33 @@
+name: Build, test and release snap
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        type: string
+        required: true
+    secrets:
+      snapcraft-credential:
+        required: true
+      github-token:
+        required: true
+
+jobs:
+  build-and-test:
+    uses: RocketChat/server-snap/.github/workflows/test.yml@develop
+    with:
+      tag: ${{ inputs.tag }}
+
+  release:
+    if: '! contains(inputs.tag, ''rc'')'
+    needs:
+      - build-and-test
+    uses: RocketChat/server-snap/.github/workflows/release.yml@develop
+    with:
+      snap: ${{ needs.build-and-test.outputs.snap-basename }}
+      snap-track: ${{ needs.build-and-test.outputs.snap-track }}
+      commit: ${{ needs.build-and-test.outputs.commit }}
+      tag: ${{ inputs.tag }}
+    secrets:
+      snapcraft-credential: ${{ secrets.snapcraft-credential }}
+      github-token: ${{ secrets.github-token }}

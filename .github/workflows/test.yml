@@ -1,0 +1,145 @@
+name: Build and test snap build
+
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+    outputs:
+      snap-basename:
+        value: ${{ jobs.build.outputs.snap-basename }}
+      snap-track:
+        value: ${{ jobs.prepare.outputs.snap-track }}
+      commit:
+        value: ${{ jobs.prepare.outputs.commit }}
+      # TODO add candidate
+  workflow_dispatch:
+    inputs:
+      tag:
+        required: true
+
+
+env:
+  REPO: RocketChat/server-snap
+
+jobs:
+  prepare:
+    outputs:
+      snap-track: ${{ steps.prepare.outputs.snap-track }}
+      commit: ${{ steps.prepare.outputs.commit }}
+      run: ${{ steps.prepare.outputs.run }}
+      candidate: ${{ steps.prepare.outputs.candidate }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Clone repository'
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ env.REPO }}
+
+      - name: 'Prepare for next steps'
+        id: prepare
+        shell: bash
+        run: |
+          version=${{ inputs.tag }}
+          snap_track="${version:0:1}.x"
+          echo "snap-track: $snap_track"
+          echo "snap-track=$snap_track" >> $GITHUB_OUTPUT
+
+          candidate=false
+          run=false
+          commit=false
+
+          if [[ $version =~ ^([0-9]+\.[0-9]+\.[0-9]+)-rc\.[0-9]+$ ]]; then
+            # if version is release candidate, we need to strip out the "rc.+" part to know if we actually should push/run or not
+            # we never expect a release candidate and stable release of the same major.minor to be in race
+            candidate=true
+            version=${BASH_REMATCH[1]}
+            echo "version: $version"
+          fi
+          echo "candidate: $candidate"
+          echo "candidate=$candidate" >> $GITHUB_OUTPUT
+
+          current_version="$(yq -e .version snap/snapcraft.yaml)" # no release candidate
+
+          is_gt() {
+            local v1=(${1//./ })
+            local v2=(${2//./ })
+            (( ${v1[0]} > ${v2[0]} )) && return 0
+            (( ${v1[1]} > ${v2[1]} )) && return 0
+            (( ${v1[2]} > ${v2[2]} )) && return 0
+            return 1
+          }
+          if is_gt $version $current_version; then
+            run=true
+            if [[ $candidate == 'false' ]]; then commit=true; fi
+          fi
+          echo "run: $run"
+          echo "commit: $commit"
+          echo "run=$run" >> $GITHUB_OUTPUT
+          echo "commit=$commit" >>$GITHUB_OUTPUT
+
+  build:
+    needs:
+      - prepare
+    outputs:
+      snap-basename: ${{ steps.set-file-name.outputs.filename }}
+    runs-on: ubuntu-latest
+    if: "${{ needs.prepare.outputs.run == 'true' }}"
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ env.REPO }}
+          ref: ${{ needs.prepare.outputs.snap-track }}
+
+      - name: 'Update version'
+        shell: bash
+        run: |
+          sed -i -r '/^version:/ s/ .+/ ${{ inputs.tag }}/' ./snap/snapcraft.yaml
+
+      - name: 'Build the Snap package'
+        uses: snapcore/action-build@v1
+        id: snap-build
+
+      - name: Upload snap
+        uses: actions/upload-artifact@v3
+        with:
+          name: snap
+          path: ${{ steps.snap-build.outputs.snap }}
+
+      - name: Set snap file name
+        id: set-file-name
+        run: |
+          file_name=$(basename ${{ steps.snap-build.outputs.snap }})
+          echo "filename: $file_name"
+          echo "filename=$file_name" >>$GITHUB_OUTPUT
+
+  can-i-run:
+    needs:
+      - prepare
+      - build
+    env:
+      ROCKETCHAT_SNAP: ${{ format('/tmp/{0}', needs.build.outputs.snap-basename) }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download snap
+        uses: actions/download-artifact@v3
+        with:
+          name: snap
+          path: /tmp
+
+      - name: 'Clone tests repository'
+        uses: actions/checkout@v3
+        with:
+          repository: debdutdeb/rocket.chat.tests
+          submodules: true
+
+      - name: 'Run tests'
+        shell: bash
+        env:
+          ROCKETCHAT_TAG: ${{ inputs.tag }}
+        run: |
+          sudo apt-get --no-install-recommends install jo jq -y
+          bash ./run_snap.bash
