@@ -48,6 +48,8 @@ jobs:
         with:
           repository: ${{ env.REPO }}
 
+      - uses: debdutdeb/semis@main
+
       - name: 'Prepare for next steps'
         id: prepare
         shell: bash
@@ -75,21 +77,11 @@ jobs:
 
           current_version="$(yq -e .version snap/snapcraft.yaml)" # no release candidate
 
-          is_gt() {
-            local v1=(${1//./ })
-            local v2=(${2//./ })
-            (( ${v1[0]} > ${v2[0]} )) && return 0
-            (( ${v1[1]} > ${v2[1]} )) && return 0
-            (( ${v1[2]} > ${v2[2]} )) && return 0
-            return 1
-          }
           if [[ ${{ inputs.test-only }} == "true" ]]; then
             run=true
-          elif is_gt $version $current_version; then
+          elif semis gt $version $current_version || semis eq $version $current_version; then
             run=true
             if [[ $candidate == 'false' ]]; then commit=true; fi
-          elif [[ "$version" == "$current_version" ]]; then
-            run=true
           fi
           echo "run: $run"
           echo "commit: $commit"
