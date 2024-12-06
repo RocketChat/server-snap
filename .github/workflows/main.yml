@@ -25,8 +25,9 @@ jobs:
       - shell: bash
         id: _id
         run: |
-          tag=
-          if [[ "${{ github.event_name }}" == 'workflow_dispatch' ]]; then
+          tag="${{ inputs.tag }}"
+          # workflow_dispatch on public-releases also causing workflow_dispatch on this workflow_call (bug?)
+          if [[ -z "$tag" ]]; then
             tag="$(awk -F: '/^version:/ {print $2}' snap/snapcraft.yaml | tr -d '[:space:]')"
           else
             tag="${{inputs.tag}}"
