@@ -61,7 +61,7 @@ jobs:
         id: snap-build
 
       - name: Upload snap
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ env.SNAP_ARTIFACT_KEY }}
           path: ${{ steps.snap-build.outputs.snap }}
