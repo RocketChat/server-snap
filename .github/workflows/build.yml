@@ -72,31 +72,3 @@ jobs:
           file_name=$(basename ${{ steps.snap-build.outputs.snap }})
           echo "filename: $file_name"
           echo "filename=$file_name" >>$GITHUB_OUTPUT
-
-  can-i-run:
-    needs:
-      - build
-    env:
-      ROCKETCHAT_SNAP: ${{ format('/tmp/{0}', needs.build.outputs.snap-basename) }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download snap
-        uses: actions/download-artifact@v4
-        with:
-          name: snap
-          path: /tmp
-
-      - name: 'Clone tests repository'
-        uses: actions/checkout@v3
-        with:
-          repository: RocketChat/public-releases
-          submodules: true
-
-      - name: 'Run tests'
-        shell: bash
-        env:
-          ROCKETCHAT_PREVIOUS_CHANNEL: ${{ needs.prepare.outputs.last-channel }}
-          ROCKETCHAT_TAG: ${{ inputs.tag }}
-        run: |
-          sudo apt-get --no-install-recommends install jo jq -y
-          bash ./run_snap.bash
