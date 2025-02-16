@@ -1,0 +1,81 @@
+name: All in one, once a day
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+
+env:
+  REPO: RocketChat/server-snap
+
+jobs:
+  prereqs:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      run: ${{ steps.version.outputs.run }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          repository: ${{ env.REPO }}
+
+      - uses: debdutdeb/semis@main
+
+      - shell: bash
+        id: version
+        run: |
+          tag="$(curl -s https://releases.rocket.chat/latest/info | jq -r .tag)"
+
+          if [[ -z "$tag" ]]; then
+            echo "something wrong, releases endpoint returned nothing?"
+            exit 1
+          fi
+
+          if semis eq $tag $current; then
+            echo "No new version found"
+            echo "run=false" >>$GITHUB_OUTPUT
+            exit 0
+          fi
+
+          if semis lt $tag $current; then
+            echo "Got version that is less than what is in repo, weird, alarms should go off at this point"
+            echo "run=false" >>$GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "run=$run" >>$GITHUB_OUTPUT
+
+          echo "tag: $tag"
+          echo "version=$tag" >> $GITHUB_OUTPUT
+
+  build:
+    if: needs.prereqs.outputs.run == 'true'
+    needs: [ prereqs ]
+    uses: RocketChat/server-snap/.github/workflows/build.yml@develop
+    with:
+      tag: ${{ needs.prereqs.outputs.version }}
+
+  test:
+    needs: [ build, prereqs ]
+    uses: RocketChat/server-snap/.github/workflows/test.yml@develop
+    with:
+      tag: ${{ needs.prereqs.outputs.version }}
+      snap-artifact-key: ${{ needs.build.outputs.snap-artifact-key}}
+      snap-basename: ${{needs.build.outputs.snap-basename }}
+    secrets:
+      snapcraft-credential: ${{secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+
+
+  release:
+    needs:
+      - prereqs
+      - build
+      - test
+    uses: RocketChat/server-snap/.github/workflows/release.yml@develop
+    with:
+      tag: ${{ needs.prereqs.outputs.version }}
+      snap-artifact-key: ${{ needs.build.outputs.snap-artifact-key }}
+      snap-basename: ${{ needs.build.outputs.snap-basename }}
+    secrets:
+      snapcraft-credential: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+      github-token: ${{ secrets.GH_TOKEN_PERSONAL }}
+
