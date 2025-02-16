@@ -40,6 +40,7 @@ jobs:
         run: |
           track=${{ inputs.tag }}
           track=${track:0:1}.x
+          echo "track: $track"
           if ! snapcraft list-revisions rocketchat-server | tail -n '+2' | grep -q "$track/stable"; then
             last_channel="$((${track:0:1}-1)).x/stable"
           fi
