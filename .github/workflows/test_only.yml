@@ -1,0 +1,51 @@
+name: Only build and test
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        type: string
+        required: false
+
+env:
+  REPO: RocketChat/server-snap
+
+jobs:
+  prereqs:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          repository: ${{ env.REPO }}
+
+      - shell: bash
+        id: version
+        run: |
+          tag="${{ inputs.tag }}"
+
+          if [[ -z "$tag" ]]; then # like in case of workflow_dispatch with no tag set
+            tag="$(awk -F: '/^version:/ {print $2}' snap/snapcraft.yaml | tr -d '[:space:]')"
+          else
+            tag="${{inputs.tag}}"
+          fi
+
+          echo "tag: $tag"
+          echo "version=$tag" >> $GITHUB_OUTPUT
+
+  build:
+    needs: [ prereqs ]
+    uses: RocketChat/server-snap/.github/workflows/build.yml@develop
+    with:
+      tag: ${{ needs.prereqs.outputs.version }}
+
+  test:
+    needs: [ build, prereqs ]
+    uses: RocketChat/server-snap/.github/workflows/test.yml@develop
+    with:
+      tag: ${{ needs.prereqs.outputs.version }}
+      artifact-key: ${{ needs.build.outputs.snap-artifact-key}}
+      snap-basename: ${{needs.build.outputs.snap-basename }}
+    secrets:
+      snapcraft-credential: ${{secrets.SNAPCRAFT_STORE_CREDENTIALS }}
