@@ -1,4 +1,4 @@
-name: Build and test snap build
+name: Just build the snap (reusable, manual)
 
 
 on:

@@ -1,4 +1,4 @@
-name: Build, test and release snap
+name: Build, test and release snap (reusable, manual)
 
 description: Always do what the title says, irrespective of how being called
 

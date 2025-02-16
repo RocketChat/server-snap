@@ -1,4 +1,4 @@
-name: ''
+name: Test snap (reusable)
 on:
   workflow_call:
     inputs:

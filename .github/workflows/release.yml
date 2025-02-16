@@ -1,4 +1,4 @@
-name: Release snap
+name: Release snap (reusable)
 
 on:
   workflow_call:
