@@ -1,4 +1,4 @@
-name: Only build and test
+name: All in one, manual
 
 on:
   workflow_dispatch:
