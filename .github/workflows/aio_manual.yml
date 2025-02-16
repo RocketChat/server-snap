@@ -6,6 +6,11 @@ on:
       tag:
         type: string
         required: false
+      release:
+        type: choice
+        options:
+          - 'yes'
+          - 'no'
 
 env:
   REPO: RocketChat/server-snap
@@ -49,3 +54,18 @@ jobs:
       snap-basename: ${{needs.build.outputs.snap-basename }}
     secrets:
       snapcraft-credential: ${{secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+
+
+  release:
+    if: inputs.release == 'yes'
+    needs:
+      - build
+      - test
+    uses: RocketChat/server-snap/.github/workflows/release.yml@develop
+    with:
+      tag: ${{ inputs.tag }}
+      snap-artifact-key: ${{ needs.build.outputs.snap-artifact-key }}
+      snap-basename: ${{ needs.build.outputs.snap-basename }}
+    secrets:
+      snapcraft-credential: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+      github-token: ${{ secrets.GH_TOKEN_PERSONAL }}
