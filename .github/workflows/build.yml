@@ -1,0 +1,102 @@
+name: Build and test snap build
+
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+    outputs:
+      snap-basename:
+        value: ${{ jobs.build.outputs.snap-basename }}
+      snap-artifact-key:
+        value: ${{ jobs.build.outputs.snap-artifact-key }}
+      # TODO add candidate
+  workflow_dispatch:
+    inputs:
+      tag:
+        required: true
+
+
+env:
+  REPO: RocketChat/server-snap
+
+jobs:
+  build:
+    env:
+      SNAP_ARTIFACT_KEY: snap
+
+    outputs:
+      snap-basename: ${{ steps.snap-filename.outputs.filename }}
+      snap-artifact-key: ${{ env.SNAP_ARTIFACT_KEY }}
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: samuelmeuli/action-snapcraft@v2
+        name: 'Install snapcraft'
+
+
+      - name: Branch to clone
+        id: branch
+        run: |
+          version=${{ inputs.tag }}
+          snap_track="${version:0:1}.x"
+          echo "snap-track: $snap_track"
+          echo "snap-track=$snap_track" >> $GITHUB_OUTPUT
+
+      - name: 'Clone repository'
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ env.REPO }}
+          ref: ${{ steps.branch.outputs.snap-track }}
+
+      - name: 'Update version'
+        shell: bash
+        run: |
+          sed -i -r '/^version:/ s/ .+/ ${{ inputs.tag }}/' ./snap/snapcraft.yaml
+
+      - name: 'Build the Snap package'
+        uses: snapcore/action-build@v1
+        id: snap-build
+
+      - name: Upload snap
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.SNAP_ARTIFACT_KEY }}
+          path: ${{ steps.snap-build.outputs.snap }}
+
+      - name: Set snap file name
+        id: snap-filename
+        run: |
+          file_name=$(basename ${{ steps.snap-build.outputs.snap }})
+          echo "filename: $file_name"
+          echo "filename=$file_name" >>$GITHUB_OUTPUT
+
+  can-i-run:
+    needs:
+      - build
+    env:
+      ROCKETCHAT_SNAP: ${{ format('/tmp/{0}', needs.build.outputs.snap-basename) }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download snap
+        uses: actions/download-artifact@v3
+        with:
+          name: snap
+          path: /tmp
+
+      - name: 'Clone tests repository'
+        uses: actions/checkout@v3
+        with:
+          repository: RocketChat/public-releases
+          submodules: true
+
+      - name: 'Run tests'
+        shell: bash
+        env:
+          ROCKETCHAT_PREVIOUS_CHANNEL: ${{ needs.prepare.outputs.last-channel }}
+          ROCKETCHAT_TAG: ${{ inputs.tag }}
+        run: |
+          sudo apt-get --no-install-recommends install jo jq -y
+          bash ./run_snap.bash

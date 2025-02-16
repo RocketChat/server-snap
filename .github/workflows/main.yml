@@ -1,5 +1,7 @@
 name: Build, test and release snap
 
+description: Always do what the title says, irrespective of how being called
+
 on:
   workflow_call:
     inputs:
@@ -12,22 +14,30 @@ on:
       github-token:
         required: true
   workflow_dispatch:
-    # this trigger uses existing version for release
+    inputs:
+      tag:
+        type: string
+        required: false
+
+env:
+  REPO: RocketChat/server-snap
 
 jobs:
   prereqs:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps._id.outputs.version }}
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v3
-        if: github.event_name == 'workflow_dispatch'
+        with:
+          repository: ${{ env.REPO }}
+
       - shell: bash
-        id: _id
+        id: version
         run: |
           tag="${{ inputs.tag }}"
-          # workflow_dispatch on public-releases also causing workflow_dispatch on this workflow_call (bug?)
-          if [[ -z "$tag" ]]; then
+
+          if [[ -z "$tag" ]]; then # like in case of workflow_dispatch with no tag set
             tag="$(awk -F: '/^version:/ {print $2}' snap/snapcraft.yaml | tr -d '[:space:]')"
           else
             tag="${{inputs.tag}}"
@@ -36,24 +46,45 @@ jobs:
           echo "tag: $tag"
           echo "version=$tag" >> $GITHUB_OUTPUT
 
-  build-and-test:
+      - uses: debdutdeb/semis@main
+
+      - shell: bash
+        name: make sure an older version do not get pushed over current release
+        run: |
+          # Snap will just push a new revision over current, so, no
+          current="$(awk -F: '/^version:/ {print $2}' snap/snapcraft.yaml | tr -d '[:space:]')"
+
+          if semis gt $current ${{ steps.version.outputs.version }}; then
+            echo "$current is higher than given version, exiting"
+            exit 1
+          fi
+
+  build:
     needs: [ prereqs ]
+    uses: RocketChat/server-snap/.github/workflows/build.yml@develop
+    with:
+      tag: ${{ needs.prereqs.outputs.version }}
+
+  test:
+    needs: [ build, prereqs ]
     uses: RocketChat/server-snap/.github/workflows/test.yml@develop
     with:
       tag: ${{ needs.prereqs.outputs.version }}
+      artifact-key: ${{ needs.build.outputs.snap-artifact-key}}
+      snap-basename: ${{needs.build.outputs.snap-basename }}
     secrets:
-      snapcraft-credential: ${{ secrets.snapcraft-credential }}
+      snapcraft-credential: ${{secrets.snapcraft-credential || secrets.SNAPCRAFT_STORE_CREDENTIALS }}
 
   release:
     if: '! contains(inputs.tag, ''rc'')'
     needs:
-      - build-and-test
+      - build
+      - test
     uses: RocketChat/server-snap/.github/workflows/release.yml@develop
     with:
-      snap: ${{ needs.build-and-test.outputs.snap-basename }}
-      snap-track: ${{ needs.build-and-test.outputs.snap-track }}
-      commit: ${{ needs.build-and-test.outputs.commit }}
+      snap-basename: ${{ needs.build.outputs.snap-basename }}
       tag: ${{ inputs.tag }}
+      snap-artifact-key: ${{ needs.build.outputs.snap-artifact-key }}
     secrets:
-      snapcraft-credential: ${{ secrets.snapcraft-credential }}
-      github-token: ${{ secrets.github-token }}
+      snapcraft-credential: ${{ secrets.snapcraft-credential || secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+      github-token: ${{ secrets.github-token || secrets.GH_TOKEN_PERSONAL }}
