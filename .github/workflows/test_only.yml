@@ -45,7 +45,7 @@ jobs:
     uses: RocketChat/server-snap/.github/workflows/test.yml@develop
     with:
       tag: ${{ needs.prereqs.outputs.version }}
-      artifact-key: ${{ needs.build.outputs.snap-artifact-key}}
+      snap-artifact-key: ${{ needs.build.outputs.snap-artifact-key}}
       snap-basename: ${{needs.build.outputs.snap-basename }}
     secrets:
       snapcraft-credential: ${{secrets.SNAPCRAFT_STORE_CREDENTIALS }}
