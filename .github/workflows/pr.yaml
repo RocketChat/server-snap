@@ -18,13 +18,21 @@ jobs:
           echo "tag: $tag"
           echo "tag=$tag" >> $GITHUB_OUTPUT
 
-  build-and-test:
-    # uses: RocketChat/server-snap/.github/workflows/test.yml@${{ github.head_ref || github.ref_name }}
-    uses: RocketChat/server-snap/.github/workflows/test.yml@7.x
-    needs: [variables]
+  build:
+    needs:
+      - variables
+    uses: RocketChat/server-snap/.github/workflows/build.yml@develop
     with:
       tag: ${{ needs.variables.outputs.tag }}
-      test-only: 'true'
+
+  test:
+    # uses: RocketChat/server-snap/.github/workflows/test.yml@${{ github.head_ref || github.ref_name }}
+    uses: RocketChat/server-snap/.github/workflows/test.yml@develop
+    needs: [build, variables]
+    with:
+      tag: ${{ needs.variables.outputs.tag }}
+      snap-artifact-key: ${{ needs.build.outputs.snap-artifact-key }}
+      snap-basename: ${{ needs.build.outputs.snap-basename }}
     secrets:
       snapcraft-credential: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
 

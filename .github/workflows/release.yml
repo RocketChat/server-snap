@@ -6,13 +6,10 @@ on:
       tag:
         required: true
         type: string
-      snap:
+      snap-basename:
         required: true
         type: string
-      snap-track:
-        required: true
-        type: string
-      commit:
+      snap-artifact-key:
         required: true
         type: string
     secrets:
@@ -28,13 +25,22 @@ env:
 jobs:
   publish-snap:
     env:
-      ROCKETCHAT_SNAP: ${{ format('/tmp/{0}', inputs.snap) }}
+      ROCKETCHAT_SNAP: ${{ format('/tmp/{0}', inputs.snap-basename) }}
     runs-on: ubuntu-latest
+    outputs:
+      track: ${{ steps.track.outputs.track }}
     steps:
+      - id: track
+        run: |
+          tag=${{inputs.tag}}
+          track=${tag:0:1}.x
+          echo "track: $track"
+          echo "track=$track" >> $GITHUB_OUTPUT
+
       - name: Download snap
         uses: actions/download-artifact@v3
         with:
-          name: snap
+          name: ${{ inputs.snap-artifact-key }}
           path: /tmp
 
       - name: 'Upload to snapstore'
@@ -43,7 +49,7 @@ jobs:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.snapcraft-credential }}
         with:
           snap: ${{ env.ROCKETCHAT_SNAP }}
-          release: ${{ format('{0}/edge', inputs.snap-track) }}
+          release: ${{ format('{0}/edge', steps.track.outputs.track) }}
 
       - name: 'Create release with artifact'
         uses: softprops/action-gh-release@v1
@@ -57,27 +63,35 @@ jobs:
           body: ${{ format('https://github.com/RocketChat/Rocket.Chat/releases/{0}', inputs.tag) }}
           draft: false
           fail_on_unmatched_files: true
-          target_commitish: ${{ inputs.snap-track}}
+          target_commitish: ${{steps.track.outputs.track}}
           generate_release_notes: true
 
   repo-actions:
     runs-on: ubuntu-latest
     needs:
       - publish-snap
-    if: "${{ inputs.commit == 'true' }}"
     steps:
       - name: 'Clone snap repo'
         uses: actions/checkout@v3
         with:
           repository: ${{ env.REPO }}
           token: ${{ secrets.github-token }}
-          ref: ${{inputs.snap-track}}
+          ref: ${{needs.publish-snap.outputs.track}}
 
-      - name: 'Update version'
-        shell: bash
-        run: sed -i -r '/^version:/ s/ .+/ ${{ inputs.tag }}/' ./snap/snapcraft.yaml
+      - uses: debdutdeb/semis@main
+
+      - shell: bash
+        id: commit
+        run: |
+          current="$(awk -F: '/^version:/ {print $2}' snap/snapcraft.yaml | tr -d '[:space:]')"
+          if semis gt ${{ inputs.tag }} $current; then
+            echo "committing"
+            echo "commit=true" >>$GITHUB_OUTPUT
+            sed -i -r '/^version:/ s/ .+/ ${{ inputs.tag }}/' ./snap/snapcraft.yaml
+          fi
 
       - name: 'Commit snapcraft file'
+        if: steps.commit.outputs.commit == 'true'
         uses: EndBug/add-and-commit@v9
         with:
           add: ./snap/snapcraft.yaml
