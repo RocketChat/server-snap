@@ -36,11 +36,12 @@ jobs:
       - id: track
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.snapcraft-credential }}
+        shell: bash
         run: |
           track=${{ inputs.tag }}
           track=${track:0:1}.x
           if ! snapcraft list-revisions rocketchat-server | tail -n '+2' | grep -q "$track/stable"; then
-            last_channel="$((${version:0:1}-1)).x/stable"
+            last_channel="$((${track:0:1}-1)).x/stable"
           fi
 
           echo "last_channel: $last_channel"
