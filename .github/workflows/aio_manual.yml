@@ -72,6 +72,7 @@ jobs:
     if: |
       always() &&
       (needs.build.result == 'skipped' || needs.build.result == 'success') &&
+      needs.test.result == 'success' &&
       inputs.release == 'yes'
     needs:
       - build
