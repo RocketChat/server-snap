@@ -50,7 +50,7 @@ jobs:
     needs: [ prereqs ]
     uses: RocketChat/server-snap/.github/workflows/build.yml@develop
     with:
-      snap-artifact-key: ${{ env.SNAP_ARTIFACT_KEY }}
+      snap-artifact-key: snap #${{ env.SNAP_ARTIFACT_KEY }}
       tag: ${{ needs.prereqs.outputs.version }}
 
   test:
@@ -61,7 +61,7 @@ jobs:
     uses: RocketChat/server-snap/.github/workflows/test.yml@develop
     with:
       tag: ${{ needs.prereqs.outputs.version }}
-      snap-artifact-key: ${{ env.SNAP_ARTIFACT_KEY }}
+      snap-artifact-key:  snap #${{ env.SNAP_ARTIFACT_KEY }}
       snap-basename: ${{ needs.build.result == 'success' && needs.build.outputs.snap-basename || format('rocketchat-server_{0}.snap', inputs.tag) }}
       run-id: ${{ inputs.run-id }}
     secrets:
@@ -79,7 +79,7 @@ jobs:
     uses: RocketChat/server-snap/.github/workflows/release.yml@develop
     with:
       tag: ${{ inputs.tag }}
-      snap-artifact-key: ${{ env.SNAP_ARTIFACT_KEY }}
+      snap-artifact-key: snap #${{ env.SNAP_ARTIFACT_KEY }}
       snap-basename: ${{ needs.build.result == 'success' && needs.build.outputs.snap-basename || format('rocketchat-server_{0}.snap', inputs.tag) }}
     secrets:
       snapcraft-credential: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
