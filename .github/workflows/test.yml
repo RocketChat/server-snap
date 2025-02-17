@@ -37,6 +37,7 @@ jobs:
         with:
           run-id: ${{ inputs.run-id }}
           path: /tmp
+          github-token: ${{ secrets.GH_PERSONAL_TOKEN }}
 
       - name: 'Clone tests repository'
         uses: actions/checkout@v3
