@@ -83,6 +83,7 @@ jobs:
       tag: ${{ inputs.tag }}
       snap-artifact-key: snap #${{ env.SNAP_ARTIFACT_KEY }}
       snap-basename: ${{ needs.build.result == 'success' && needs.build.outputs.snap-basename || format('rocketchat-server_{0}_amd64.snap', inputs.tag) }}
+      run-id: ${{ inputs.run-id }}
     secrets:
       snapcraft-credential: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
       github-token: ${{ secrets.GH_TOKEN_PERSONAL2}}
