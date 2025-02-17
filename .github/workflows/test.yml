@@ -17,6 +17,8 @@ on:
     secrets:
       snapcraft-credential:
         required: true
+      github-token:
+        required: true
 
 jobs:
   can-i-run:
@@ -31,7 +33,7 @@ jobs:
           name: ${{ inputs.snap-artifact-key }}
           path: /tmp
           run-id: ${{ inputs.run-id }}
-          github-token: ${{ secrets.GH_TOKEN_PERSONAL2 }} # https://github.com/actions/download-artifact/blob/7fba95161a0924506ed1ae69cdbae8371ee00b3f/src/download-artifact.ts#L42-L52
+          github-token: ${{ secrets.github-token || secrets.GITHUB_TOKEN }} # httpsithub.com/actions/download-artifact/blob/7fba95161a0924506ed1ae69cdbae8371ee00b3f/src/download-artifact.ts#L42-L52
 
       - name: 'Clone tests repository'
         uses: actions/checkout@v3

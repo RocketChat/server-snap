@@ -12,7 +12,7 @@ on:
           - 'yes'
           - 'no'
       run-id:
-        type: string
+        type: number
         required: false
         description: Download artifact from this run instead of rebuilding.
 
@@ -66,6 +66,7 @@ jobs:
       run-id: ${{ inputs.run-id }}
     secrets:
       snapcraft-credential: ${{secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+      github-token: ${{secrets.GH_TOKEN_PERSONAL2 }}
 
 
   release:
@@ -84,4 +85,4 @@ jobs:
       snap-basename: ${{ needs.build.result == 'success' && needs.build.outputs.snap-basename || format('rocketchat-server_{0}.snap', inputs.tag) }}
     secrets:
       snapcraft-credential: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
-      github-token: ${{ secrets.GH_TOKEN_PERSONAL }}
+      github-token: ${{ secrets.GH_TOKEN_PERSONAL2}}
