@@ -35,6 +35,9 @@ jobs:
           run-id: ${{ inputs.run-id }}
           github-token: ${{ secrets.github-token || secrets.GITHUB_TOKEN }} # httpsithub.com/actions/download-artifact/blob/7fba95161a0924506ed1ae69cdbae8371ee00b3f/src/download-artifact.ts#L42-L52
 
+
+      - run: ls /tmp
+
       - name: 'Clone tests repository'
         uses: actions/checkout@v3
         with:
