@@ -30,6 +30,8 @@ jobs:
             exit 1
           fi
 
+          current="$(awk -F: '/^version:/ {print $2}' snap/snapcraft.yaml | tr -d '[:space:]')"
+
           if semis eq $tag $current; then
             echo "No new version found"
             echo "run=false" >>$GITHUB_OUTPUT
