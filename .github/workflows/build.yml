@@ -7,12 +7,12 @@ on:
       tag:
         required: true
         type: string
+      snap-artifact-key:
+        required: true
+        type: string
     outputs:
       snap-basename:
         value: ${{ jobs.build.outputs.snap-basename }}
-      snap-artifact-key:
-        value: ${{ jobs.build.outputs.snap-artifact-key }}
-      # TODO add candidate
   workflow_dispatch:
     inputs:
       tag:
@@ -24,12 +24,8 @@ env:
 
 jobs:
   build:
-    env:
-      SNAP_ARTIFACT_KEY: snap
-
     outputs:
       snap-basename: ${{ steps.snap-filename.outputs.filename }}
-      snap-artifact-key: ${{ env.SNAP_ARTIFACT_KEY }}
 
     runs-on: ubuntu-latest
     steps:
@@ -63,7 +59,7 @@ jobs:
       - name: Upload snap
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.SNAP_ARTIFACT_KEY }}
+          name: ${{inputs.snap-artifact-key}}
           path: ${{ steps.snap-build.outputs.snap }}
 
       - name: Set snap file name

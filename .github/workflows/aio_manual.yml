@@ -11,9 +11,15 @@ on:
         options:
           - 'yes'
           - 'no'
+      run-id:
+        type: string
+        required: false
+        description: Download artifact from this run instead of rebuilding.
 
 env:
   REPO: RocketChat/server-snap
+  SNAP_ARTIFACT_KEY: snap
+
 
 jobs:
   prereqs:
@@ -40,32 +46,41 @@ jobs:
           echo "version=$tag" >> $GITHUB_OUTPUT
 
   build:
+    if: inputs.run-id == ''
     needs: [ prereqs ]
     uses: RocketChat/server-snap/.github/workflows/build.yml@develop
     with:
+      snap-artifact-key: ${{ env.SNAP_ARTIFACT_KEY }}
       tag: ${{ needs.prereqs.outputs.version }}
 
   test:
     needs: [ build, prereqs ]
+    if: |
+      always() &&
+      (needs.build.result == 'skipped' || needs.build.result == 'success')
     uses: RocketChat/server-snap/.github/workflows/test.yml@develop
     with:
       tag: ${{ needs.prereqs.outputs.version }}
-      snap-artifact-key: ${{ needs.build.outputs.snap-artifact-key}}
-      snap-basename: ${{needs.build.outputs.snap-basename }}
+      snap-artifact-key: ${{ env.SNAP_ARTIFACT_KEY }}
+      snap-basename: ${{ needs.build.result == 'success' && needs.build.outputs.snap-basename || format('rocketchat-server_{0}.snap', inputs.tag) }}
+      run-id: ${{ inputs.run-id }}
     secrets:
       snapcraft-credential: ${{secrets.SNAPCRAFT_STORE_CREDENTIALS }}
 
 
   release:
-    if: inputs.release == 'yes'
+    if: |
+      always() &&
+      (needs.build.result == 'skipped' || needs.build.result == 'success') &&
+      inputs.release == 'yes'
     needs:
       - build
       - test
     uses: RocketChat/server-snap/.github/workflows/release.yml@develop
     with:
       tag: ${{ inputs.tag }}
-      snap-artifact-key: ${{ needs.build.outputs.snap-artifact-key }}
-      snap-basename: ${{ needs.build.outputs.snap-basename }}
+      snap-artifact-key: ${{ env.SNAP_ARTIFACT_KEY }}
+      snap-basename: ${{ needs.build.result == 'success' && needs.build.outputs.snap-basename || format('rocketchat-server_{0}.snap', inputs.tag) }}
     secrets:
       snapcraft-credential: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
       github-token: ${{ secrets.GH_TOKEN_PERSONAL }}

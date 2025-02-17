@@ -11,6 +11,9 @@ on:
       snap-basename:
         required: true
         type: string
+      run-id:
+        type: string
+        required: false
     secrets:
       snapcraft-credential:
         required: true
@@ -22,9 +25,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download snap
+        if: inputs.run-id == ''
         uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.snap-artifact-key }}
+          path: /tmp
+
+      - name: Download snap from other workflow run
+        if: inputs.run-id != ''
+        uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ inputs.run-id }}
           path: /tmp
 
       - name: 'Clone tests repository'
