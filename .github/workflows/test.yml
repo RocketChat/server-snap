@@ -25,19 +25,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download snap
-        if: inputs.run-id == ''
         uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.snap-artifact-key }}
           path: /tmp
-
-      - name: Download snap from other workflow run
-        if: inputs.run-id != ''
-        uses: actions/download-artifact@v4
-        with:
           run-id: ${{ inputs.run-id }}
-          path: /tmp
-          github-token: ${{ secrets.GH_PERSONAL_TOKEN }}
+          github-token: ${{ secrets.GH_TOKEN_PERSONAL }} # https://github.com/actions/download-artifact/blob/7fba95161a0924506ed1ae69cdbae8371ee00b3f/src/download-artifact.ts#L42-L52
 
       - name: 'Clone tests repository'
         uses: actions/checkout@v3
