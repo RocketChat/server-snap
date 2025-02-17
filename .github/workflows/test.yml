@@ -27,6 +27,7 @@ jobs:
       - name: Download snap
         uses: actions/download-artifact@v4
         with:
+          repository: RocketChat/server-snap
           name: ${{ inputs.snap-artifact-key }}
           path: /tmp
           run-id: ${{ inputs.run-id }}
