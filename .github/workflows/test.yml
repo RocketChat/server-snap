@@ -18,7 +18,7 @@ on:
       snapcraft-credential:
         required: true
       github-token:
-        required: true
+        required: false
 
 jobs:
   can-i-run:
