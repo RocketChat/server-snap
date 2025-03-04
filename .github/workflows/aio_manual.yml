@@ -83,11 +83,12 @@ jobs:
       needs.test.result == 'success' &&
       inputs.release == 'yes'
     needs:
+      - prereqs
       - build
       - test
     uses: RocketChat/server-snap/.github/workflows/release.yml@develop
     with:
-      tag: ${{ inputs.tag }}
+      tag: ${{ needs.prereqs.outputs.version }}
       snap-artifact-key: snap #${{ env.SNAP_ARTIFACT_KEY }}
       snap-basename: ${{ needs.build.result == 'success' && needs.build.outputs.snap-basename || format('rocketchat-server_{0}_amd64.snap', needs.prereqs.outputs.version) }}
       run-id: ${{ inputs.run-id }}
