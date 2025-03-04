@@ -11,6 +11,11 @@ on:
         options:
           - 'yes'
           - 'no'
+      fetch-latest:
+        type: choice
+        options:
+          - 'yes'
+          - 'no'
       run-id:
         type: number
         required: false
@@ -37,9 +42,11 @@ jobs:
           tag="${{ inputs.tag }}"
 
           if [[ -z "$tag" ]]; then # like in case of workflow_dispatch with no tag set
-            tag="$(awk -F: '/^version:/ {print $2}' snap/snapcraft.yaml | tr -d '[:space:]')"
-          else
-            tag="${{inputs.tag}}"
+            if [[ '${{ inputs.fetch-latest }}' == 'yes' ]]; then
+              tag="$(curl https://releases.rocket.chat/latest/info --silent | jq .tag -r)"
+            else
+              tag="$(awk -F: '/^version:/ {print $2}' snap/snapcraft.yaml | tr -d '[:space:]')"
+            fi
           fi
 
           echo "tag: $tag"
