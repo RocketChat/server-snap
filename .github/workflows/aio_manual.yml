@@ -69,7 +69,7 @@ jobs:
     with:
       tag: ${{ needs.prereqs.outputs.version }}
       snap-artifact-key:  snap #${{ env.SNAP_ARTIFACT_KEY }}
-      snap-basename: ${{ needs.build.result == 'success' && needs.build.outputs.snap-basename || format('rocketchat-server_{0}_amd64.snap', inputs.tag) }}
+      snap-basename: ${{ needs.build.result == 'success' && needs.build.outputs.snap-basename || format('rocketchat-server_{0}_amd64.snap',  needs.prereqs.outputs.version) }}
       run-id: ${{ inputs.run-id }}
     secrets:
       snapcraft-credential: ${{secrets.SNAPCRAFT_STORE_CREDENTIALS }}
@@ -89,7 +89,7 @@ jobs:
     with:
       tag: ${{ inputs.tag }}
       snap-artifact-key: snap #${{ env.SNAP_ARTIFACT_KEY }}
-      snap-basename: ${{ needs.build.result == 'success' && needs.build.outputs.snap-basename || format('rocketchat-server_{0}_amd64.snap', inputs.tag) }}
+      snap-basename: ${{ needs.build.result == 'success' && needs.build.outputs.snap-basename || format('rocketchat-server_{0}_amd64.snap', needs.prereqs.outputs.version) }}
       run-id: ${{ inputs.run-id }}
     secrets:
       snapcraft-credential: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
