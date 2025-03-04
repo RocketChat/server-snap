@@ -26,15 +26,23 @@ jobs:
       ROCKETCHAT_SNAP: ${{ format('/tmp/{0}', inputs.snap-basename) }}
     runs-on: ubuntu-latest
     steps:
-      - name: Download snap
+      - name: Download snap from another run-id
         uses: actions/download-artifact@v4
+        if: inputs.run-id != ''
         with:
           repository: RocketChat/server-snap
           name: ${{ inputs.snap-artifact-key }}
           path: /tmp
           run-id: ${{ inputs.run-id }}
-          github-token: ${{ secrets.github-token || secrets.GITHUB_TOKEN }} # httpsithub.com/actions/download-artifact/blob/7fba95161a0924506ed1ae69cdbae8371ee00b3f/src/download-artifact.ts#L42-L52
+          github-token: ${{ secrets.github-token || secrets.GITHUB_TOKEN }} # https://github.com/actions/download-artifact/blob/7fba95161a0924506ed1ae69cdbae8371ee00b3f/src/download-artifact.ts#L42-L52
 
+      - name: Download snap
+        uses: actions/download-artifact@v4
+        if: inputs.run-id == ''
+        with:
+          repository: RocketChat/server-snap
+          name: ${{ inputs.snap-artifact-key }}
+          path: /tmp
 
       - run: ls /tmp
 
