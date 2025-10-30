@@ -66,7 +66,7 @@ jobs:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.snapcraft-credential }}
         with:
           snap: ${{ env.ROCKETCHAT_SNAP }}
-          release: ${{ format('{0}/edge', steps.track.outputs.track) }}
+          release: ${{ format('{0}/stable', steps.track.outputs.track) }}
 
       - name: 'Create release with artifact'
         uses: softprops/action-gh-release@v1
