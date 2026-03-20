@@ -85,5 +85,5 @@ jobs:
       snap-basename: ${{ needs.build.outputs.snap-basename }}
     secrets:
       snapcraft-credential: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
-      github-token: ${{ secrets.GH_TOKEN_PERSONAL }}
+      github-token: ${{ secrets.GH_TOKEN_PERSONAL2 }}
 
