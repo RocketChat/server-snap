@@ -1,6 +1,6 @@
 name: rocketchat-server
 title: Rocket.Chat Server
-base: core20
+base: core24
 version: 7.5.0
 summary: An Open Source Slack Alternative
 description: |
