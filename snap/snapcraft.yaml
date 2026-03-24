@@ -78,6 +78,12 @@ hooks:
   configure: *hook_plugs
 
 parts:
+  mongodb-libssl-backwards-compat:
+    plugin: dump
+    source: https://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.24_amd64.deb
+    source-type: deb
+    # https://forum.snapcraft.io/t/bug-grammar-support-missing-for-source-checksum/7618/4
+    source-checksum: sha256/7cf39d70a639017d1dd7c8d36daa2258063608688e449fddf40ffdd46f992a78
   mongodb:
     plugin: dump
     source:
@@ -92,7 +98,7 @@ parts:
     stage-packages:
       # For the dependecies:
       # https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu-tarball/#install-mongodb-community-edition
-      - openssl
+      #- openssl
       - liblzma5
       - on amd64: [libcurl4]
       - on arm64: [libcurl3]
