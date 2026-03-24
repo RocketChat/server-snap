@@ -96,24 +96,23 @@ parts:
       - liblzma5
       - on amd64: [libcurl4]
       - on arm64: [libcurl3]
-    filesets:
-      excluded:
-        - -LICENSE-Community.txt
-        - -MPL-2
-        - -README
-        - -THIRD-PARTY-NOTICES
-        - -THIRD-PARTY-NOTICES.gotools
-        - -usr/share
-        - -bin/bsondump
-        - -bin/install_compass
-        - -bin/mongoexport
-        - -bin/mongofiles
-        - -bin/mongoimport
-        - -bin/mongoreplay
-        - -bin/mongos
-        - -bin/mongostat
-        - -bin/mongotop
-    stage: [$excluded]
+    stage:
+      - ./*
+      - -LICENSE-Community.txt
+      - -MPL-2
+      - -README
+      - -THIRD-PARTY-NOTICES
+      - -THIRD-PARTY-NOTICES.gotools
+      - -usr/share
+      - -bin/bsondump
+      - -bin/install_compass
+      - -bin/mongoexport
+      - -bin/mongofiles
+      - -bin/mongoimport
+      - -bin/mongoreplay
+      - -bin/mongos
+      - -bin/mongostat
+      - -bin/mongotop
 
   mongodb-tools:
     plugin: dump
@@ -252,19 +251,17 @@ parts:
     override-build: |
       (cd programs/server; npm i --production --unsafe-perm)
       snapcraftctl build
-    filesets:
-      excluded:
-        - -README
-        - -README.md
-        - -LICENSE
-        - -CHANGELOG.md
-        - -share
-        # filesets are excluding hidden files
-        # BUG - need to fix upstream
-        # not a bug, design choice
-        - .node_version.txt
-        - '*'
-    stage: [$excluded]
+    stage:
+      - ./*
+      # filesets are excluding hidden files
+      # BUG - need to fix upstream
+      # not a bug, design choice
+      - ./.node_version.txt
+      - -README
+      - -README.md
+      - -LICENSE
+      - -CHANGELOG.md
+      - -share
 
   caddyv2:
     plugin: dump
@@ -273,11 +270,10 @@ parts:
       - on arm64: https://github.com/caddyserver/caddy/releases/download/v2.4.3/caddy_2.4.3_linux_arm64.tar.gz
     organize:
       caddy: bin/caddy2
-    filesets:
-      excluded:
-        - -README.md
-        - -LICENSE
-    stage: [$excluded]
+    stage:
+      - ./*
+      - -README.md
+      - -LICENSE
 
   caddyv1:
     plugin: dump
@@ -286,13 +282,12 @@ parts:
       - on arm64: https://github.com/caddyserver/caddy/releases/download/v1.0.4/caddy_v1.0.4_linux_arm64.tar.gz
     organize:
       caddy: bin/caddy1
-    filesets:
-      excluded:
-        - -README.txt
-        - -LICENSES.txt
-        - -CHANGES.txt
-        - -init
-    stage: [$excluded]
+    stage:
+      - ./*
+      - -README.txt
+      - -LICENSES.txt
+      - -CHANGES.txt
+      - -init
 
   yq:
     plugin: dump
