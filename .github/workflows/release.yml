@@ -18,6 +18,10 @@ on:
     secrets:
       snapcraft-credential:
         required: true
+      snapcraft-key:
+        required: true
+      snapcraft-key-passphrase:
+        required: true
       github-token:
         required: true
 
@@ -58,14 +62,24 @@ jobs:
           name: ${{ inputs.snap-artifact-key }}
           path: /tmp
 
-      - run: ls /tmp
-
-      
-
+      - run: |
+          ls /tmp
+          snap_file=${ROCKETCHAT_SNAP}
+          test -f $snap_file
+          test -f ~/.snap/gnupg || mkdir -p ~/.snap/gnupg
+          echo "${{ secrets.snapcraft-key }}" | gpg --batch --import
+          snapcraft sign-build $snap_file --key-name snapcraft-builds --passphrase ${{ secrets.snapcraft-key-passphrase }}
+          assertion=${snap_file%%.snap}.ack
+          test -f $assertion
+          echo "assertion=$assertion"
+        id: assertion
+        
       - name: 'Create release with artifact'
         uses: softprops/action-gh-release@v1
         with:
-          files: ${{ env.ROCKETCHAT_SNAP }}
+          files: |
+            ${{ env.ROCKETCHAT_SNAP }}
+            ${{ steps.assertion.outputs.assertion }}
           prerelease: false
           repository: ${{ env.REPO }}
           token: ${{ secrets.github-token }}
