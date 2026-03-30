@@ -60,13 +60,7 @@ jobs:
 
       - run: ls /tmp
 
-      - name: 'Upload to snapstore'
-        uses: snapcore/action-publish@v1
-        env:
-          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.snapcraft-credential }}
-        with:
-          snap: ${{ env.ROCKETCHAT_SNAP }}
-          release: ${{ format('{0}/stable', steps.track.outputs.track) }}
+      
 
       - name: 'Create release with artifact'
         uses: softprops/action-gh-release@v1
@@ -82,6 +76,14 @@ jobs:
           fail_on_unmatched_files: true
           target_commitish: ${{steps.track.outputs.track}}
           generate_release_notes: true
+
+      - name: 'Upload to snapstore'
+        uses: snapcore/action-publish@v1
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.snapcraft-credential }}
+        with:
+          snap: ${{ env.ROCKETCHAT_SNAP }}
+          release: ${{ format('{0}/stable', steps.track.outputs.track) }}
 
   repo-actions:
     runs-on: ubuntu-latest
