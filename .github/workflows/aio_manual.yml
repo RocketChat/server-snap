@@ -95,3 +95,5 @@ jobs:
     secrets:
       snapcraft-credential: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
       github-token: ${{ secrets.GH_TOKEN_PERSONAL2}}
+      snapcraft-key: ${{ secrets.SNAPCRAFT_KEY }}
+      snapcraft-key-passphrase: ${{ secrets.SNAPCRAFT_KEY_PASSPHRASE }}
