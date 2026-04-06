@@ -1,0 +1,8 @@
+parts:
+  mongodb:
+    plugin: mongodb
+    mongodb-version: 7.3.4
+    mongodb-distro-override: ubuntu2204
+  node:
+    plugin: novm
+    novm-node-version: 22.16.0

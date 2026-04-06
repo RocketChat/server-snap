@@ -2,10 +2,14 @@
 tar/
 stage/
 prime/
-parts/
 Dockerfile
 .dockerignore
 mount/
 *.assert
 *.xdelta3*
 .idea/
+
+**/__pycache__/**
+.direnv/
+
+**/work/**
