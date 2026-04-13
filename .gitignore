@@ -13,3 +13,9 @@ mount/
 .direnv/
 
 **/work/**
+
+snap_fs/
+
+*.assert
+*.snap
+tests/

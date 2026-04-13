@@ -36,8 +36,8 @@ setParameter:
 
 storage:
   dbPath: $SNAP_COMMON
-  journal:
-    enabled: true
+#   journal:
+#     enabled: true
 
 systemLog:
   destination: syslog
@@ -64,6 +64,8 @@ init_default_snap_configurations() {
 }
 
 init_mongod_feature_compatibility_version() {
+	local fcv=$(mongod_version_excluding_patch)
+	echo "fcv: $fcv"
   set_feature_compatibility $(mongod_version_excluding_patch)
 }
 

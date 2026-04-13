@@ -1,4 +1,5 @@
 import click
+import shutil
 
 from typing import Any
 import yaml
@@ -6,6 +7,7 @@ import yaml
 from craft_parts import LifecycleManager, Step
 
 from plugins import register_plugins
+
 
 def _run(stage: Step, parts_file: str, work_dir: str, cache_dir: str):
     register_plugins()
@@ -36,10 +38,17 @@ def _run(stage: Step, parts_file: str, work_dir: str, cache_dir: str):
     with lcm.action_executor() as aex:
         aex.execute(actions)
 
+
 @click.command()
 @click.argument("stage", type=click.Choice(["pull", "build", "stage", "prime"]))
 @click.option("--parts-file", type=click.Path(exists=True), default="parts.yaml")
 @click.option("--work-dir", type=click.Path(), default="./work")
 @click.option("--cache-dir", type=click.Path(), default="./cache")
-def parts(stage: str, parts_file: str, work_dir: str, cache_dir: str):
+@click.option("--force-rerun", is_flag=True, default=False)
+def parts(
+    stage: str, parts_file: str, work_dir: str, cache_dir: str, force_rerun: bool
+):
+    if force_rerun:
+        shutil.rmtree(work_dir, ignore_errors=True)
+        shutil.rmtree(cache_dir, ignore_errors=True)
     _run(stage, parts_file, work_dir, cache_dir)

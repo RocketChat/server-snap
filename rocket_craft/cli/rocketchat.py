@@ -1,3 +1,5 @@
+import os
+import shutil
 from typing import Any
 import click
 import semver
@@ -9,9 +11,11 @@ import jinja2
 
 from .mongodb_versions import _get_next_upgradable_version
 
+
 @click.group()
 def rocketchat():
     pass
+
 
 @click.command()
 @click.option("--version", type=str, required=True)
@@ -19,39 +23,68 @@ def rocketchat():
 @click.option("--work-dir", type=click.Path(), default="/tmp/work")
 @click.option("--cache-dir", type=click.Path(), default="/tmp/cache")
 @click.option("--craft-file", type=click.Path(exists=True))
-def prepare(version: str, current_mongodb_version: str, work_dir: str, cache_dir: str, craft_file: str):
+@click.option("--no-cache", is_flag=True, default=False)
+def prepare(
+    version: str,
+    current_mongodb_version: str,
+    work_dir: str,
+    cache_dir: str,
+    craft_file: str,
+    no_cache: bool,
+):
     from pathlib import Path
 
     parts_file_template = Path(__file__).resolve().parent.parent / "parts.yaml.jinja"
 
     release = rc_rel.get_release_info(version)
-    next_mongodb_version = _get_next_upgradable_version(version, current_mongodb_version)
+    next_mongodb_version = _get_next_upgradable_version(
+        version, current_mongodb_version
+    )
     template = jinja2.Template(open(parts_file_template).read())
-    rendered = template.render(mongodb_version=next_mongodb_version, novm_node_version=release.NodeVersion)
+    rendered = template.render(
+        mongodb_version=next_mongodb_version, novm_node_version=release.NodeVersion
+    )
     parts_file_rendered = parts_file_template.parent / f"parts-{version}.yaml"
     with open(parts_file_rendered, "w") as f:
         f.write(rendered)
 
-
     from .part_lifecycle import _run
+
+    if no_cache:
+        click.echo("invalidating cache")
+        shutil.rmtree(cache_dir, ignore_errors=True)
+        shutil.rmtree(work_dir, ignore_errors=True)
 
     # checks before passing to snapcraft
     _run("prime", parts_file_rendered, work_dir, cache_dir)
-
 
     craft_file_data: dict[str, Any]
 
     with open(craft_file, "r") as f:
         craft_file_data = yaml.safe_load(f)
 
-    if not semver.parse_version_info(next_mongodb_version).is_compatible(semver.parse_version_info(current_mongodb_version)):
-        click.echo("next_mongodb_version is not compatible with current_mongodb_version, incrementing epoch")
+    if not semver.parse_version_info(next_mongodb_version).is_compatible(
+        semver.parse_version_info(current_mongodb_version)
+    ):
+        click.echo(
+            "next_mongodb_version is not compatible with current_mongodb_version, incrementing epoch"
+        )
         current_epoch = _Epoch(craft_file_data["epoch"])
         craft_file_data["epoch"] = str(current_epoch + 1)
-        migration_path = Path(craft_file).parent.parent / "migrations" / "pre_refresh" / "feature_compatibility" / "00-adopt_version.sh"
+        migration_path = (
+            Path(craft_file).parent.parent
+            / "migrations"
+            / "pre_refresh"
+            / "feature_compatibility"
+            / "00-adopt_version.sh"
+        )
         if not migration_path.exists():
-            raise click.ClickException(f"{migration_path.as_posix()} does not exist, please enable it")
-        click.echo("ensuring mongodb upgrade migration is enabled " + migration_path.as_posix())
+            raise click.ClickException(
+                f"{migration_path.as_posix()} does not exist, please enable it"
+            )
+        click.echo(
+            "ensuring mongodb upgrade migration is enabled " + migration_path.as_posix()
+        )
         migration_path.chmod(0o755)
 
     craft_file_data["version"] = version

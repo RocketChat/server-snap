@@ -84,5 +84,5 @@ is_feature_compatibility() {
 }
 
 set_feature_compatibility() {
-    mongo_eval_with_error_check "JSON.stringify(db.adminCommand({ setFeatureCompatibilityVersion: \"$1\" }))"
+    mongo_eval_with_error_check "JSON.stringify(db.adminCommand({ setFeatureCompatibilityVersion: \"$1\", confirm: true }))"
 }

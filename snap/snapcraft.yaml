@@ -37,7 +37,7 @@ apps:
     daemon: forking
     environment:
       LC_ALL: C
-    plugs:
+    plugs: &id001
     - network
     - network-bind
     - network-observe
@@ -57,7 +57,7 @@ apps:
     - network-bind
     - removable-media
     stop-command: bin/stop_rocketchat.sh
-base: core20
+base: core22
 confinement: strict
 description: 'Have your own Slack like online chat, built with Meteor. https://rocket.chat/
 
@@ -65,13 +65,16 @@ description: 'Have your own Slack like online chat, built with Meteor. https://r
 epoch: 11*
 grade: stable
 hooks:
-  configure: &id001
+  configure:
     plugs:
     - network
     - network-bind
-  install: *id001
-  post-refresh: *id001
-  pre-refresh: *id001
+  install:
+    plugs: *id001
+  post-refresh:
+    plugs: *id001
+  pre-refresh:
+    plugs: *id001
 name: rocketchat-server
 parts:
   caddyv1:
@@ -169,6 +172,10 @@ parts:
     stage-packages:
     - fontconfig
   rocketcraft:
+    build-packages:
+    - python3
+    - python3-venv
+    - python3-apt
     override-build: 'cd $CRAFT_PART_BUILD
 
       python3 -m venv .venv
@@ -178,8 +185,9 @@ parts:
       pip install -r requirements.txt
 
 
-      ./rocketcraft parts prime --parts-file $CRAFT_PART_BUILD/parts-$SNAPCRAFT_PROJECT_VERSION.yaml
-      --work-dir $CRAFT_PART_BUILD/work --cache-dir $CRAFT_PART_BUILD/cache
+      # ./rocketcraft parts prime --parts-file /root/parts/rocketcraft/build/parts-*.yaml --work-dir /root/parts/rocketcraft/build/work --cache-dir /root/parts/rocketcraft/build/cache
+
+      ./rocketcraft parts prime --parts-file $CRAFT_PART_BUILD/parts-$SNAPCRAFT_PROJECT_VERSION.yaml --work-dir $CRAFT_PART_BUILD/work --cache-dir $CRAFT_PART_BUILD/cache
 
 
       cp -rp $CRAFT_PART_BUILD/work/prime/* $CRAFT_PART_INSTALL/
@@ -187,8 +195,6 @@ parts:
       '
     plugin: dump
     source: ./rocket_craft
-    build-packages:
-    - python3
   yq:
     organize:
       yq_linux_*: bin/yq
