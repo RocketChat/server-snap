@@ -2,8 +2,8 @@
 
 from lib._apt import _import_apt
 
-from cli.main import main
+from cli.main import rocketcraft
 
 if __name__ == "__main__":
     _import_apt()
-    main()
+    rocketcraft()
