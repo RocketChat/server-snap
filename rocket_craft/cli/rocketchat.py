@@ -3,7 +3,6 @@ import shutil
 from typing import Any
 import click
 import semver
-import yaml
 
 import lib.contract.rocketchat_release as rc_rel
 from lib.contract._epoch import _Epoch
@@ -24,6 +23,8 @@ def rocketchat():
 @click.option("--cache-dir", type=click.Path(), default="/tmp/cache")
 @click.option("--craft-file", type=click.Path(exists=True))
 @click.option("--no-cache", is_flag=True, default=False)
+@click.option("--no-increment-epoch", is_flag=True, default=False)
+@click.option("--skip-run", type=bool, required=False, default=False)
 def prepare(
     version: str,
     current_mongodb_version: str,
@@ -31,8 +32,16 @@ def prepare(
     cache_dir: str,
     craft_file: str,
     no_cache: bool,
+    no_increment_epoch: bool,
+    skip_run: bool,
 ):
     from pathlib import Path
+
+    from ruamel.yaml import YAML
+
+    yaml = YAML()
+    yaml.preserve_quotes = True
+    yaml.indent(mapping=2, sequence=2, offset=0)
 
     parts_file_template = Path(__file__).resolve().parent.parent / "parts.yaml.jinja"
 
@@ -40,6 +49,9 @@ def prepare(
     next_mongodb_version = _get_next_upgradable_version(
         version, current_mongodb_version
     )
+
+    click.echo(f"Next MongoDB version: {next_mongodb_version}")
+
     template = jinja2.Template(open(parts_file_template).read())
     rendered = template.render(
         mongodb_version=next_mongodb_version, novm_node_version=release.NodeVersion
@@ -50,22 +62,25 @@ def prepare(
 
     from .part_lifecycle import _run
 
-    if no_cache:
-        click.echo("invalidating cache")
-        shutil.rmtree(cache_dir, ignore_errors=True)
-        shutil.rmtree(work_dir, ignore_errors=True)
+    if not skip_run:
+        if no_cache:
+            click.echo("invalidating cache")
+            shutil.rmtree(cache_dir, ignore_errors=True)
+            shutil.rmtree(work_dir, ignore_errors=True)
 
-    # checks before passing to snapcraft
-    _run("prime", parts_file_rendered, work_dir, cache_dir)
+        # checks before passing to snapcraft
+        _run("prime", parts_file_rendered, work_dir, cache_dir)
+    else:
+        click.echo("skipping run")
 
     craft_file_data: dict[str, Any]
 
     with open(craft_file, "r") as f:
-        craft_file_data = yaml.safe_load(f)
+        craft_file_data = yaml.load(f)
 
-    if not semver.parse_version_info(next_mongodb_version).is_compatible(
-        semver.parse_version_info(current_mongodb_version)
-    ):
+    if not no_increment_epoch and not semver.parse_version_info(
+        next_mongodb_version
+    ).is_compatible(semver.parse_version_info(current_mongodb_version)):
         click.echo(
             "next_mongodb_version is not compatible with current_mongodb_version, incrementing epoch"
         )
@@ -90,7 +105,7 @@ def prepare(
     craft_file_data["version"] = version
 
     with open(craft_file, "w") as f:
-        yaml.dump(craft_file_data, f, default_flow_style=False)
+        yaml.dump(craft_file_data, f)
     click.echo("craft file updated")
 
 

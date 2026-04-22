@@ -19,8 +19,15 @@ class _Epoch:
     def __str__(self) -> str:
         return f"{self._value}{'*' if self._transition else ''}"
 
+    def __repr__(self) -> str:
+        return f"_Epoch({self._value}{'*' if self._transition else ''})"
+
     def __add__(self, other: 1) -> "_Epoch":
         if other != 1:
             raise ValueError("Epoch can only be incremented by 1")
 
         return self.__incr()
+
+
+def get_next_epoch(current: str) -> _Epoch:
+    return _Epoch(current) + 1

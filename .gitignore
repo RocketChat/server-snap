@@ -19,3 +19,6 @@ snap_fs/
 *.assert
 *.snap
 tests/
+
+._rocketcraft_completion.bash
+._rocketcraft_completion.zsh

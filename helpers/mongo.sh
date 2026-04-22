@@ -35,6 +35,10 @@ mongod_version_excluding_patch() {
     mongo_eval 'db.version().split(".").slice(0, 2).join(".")'
 }
 
+mongod_fcv() {
+    mongo_eval 'db.version().split(".").slice(0, 1).pop()' | xargs printf "%s.0"
+}
+
 mongo_eval_with_error_check() {
   # 1: command 2: errormsg
   local command=${1?}

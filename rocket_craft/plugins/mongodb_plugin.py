@@ -10,7 +10,7 @@ from typing import Literal, cast
 from typing_extensions import override
 
 from lib.contract.mongodb_release import (
-    get_mongodb_release,
+    get_mongodb_release_or_throw,
     NoMongoDBReleaseFoundError,
     MongoDBRelease,
 )
@@ -153,7 +153,7 @@ class MongoDBPlugin(_CraftPlugin):
         release: MongoDBRelease
 
         try:
-            release = get_mongodb_release(semver.parse_version_info(current_version))
+            release = get_mongodb_release_or_throw(semver.parse_version_info(current_version))
         except NoMongoDBReleaseFoundError:
             raise NoMongoDBReleaseFoundError
 

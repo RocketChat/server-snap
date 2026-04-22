@@ -82,8 +82,10 @@ parts:
       caddy: bin/caddy1
     plugin: dump
     source:
-    - on amd64: https://github.com/caddyserver/caddy/releases/download/v1.0.4/caddy_v1.0.4_linux_amd64.tar.gz
-    - on arm64: https://github.com/caddyserver/caddy/releases/download/v1.0.4/caddy_v1.0.4_linux_arm64.tar.gz
+    - on amd64: 
+        https://github.com/caddyserver/caddy/releases/download/v1.0.4/caddy_v1.0.4_linux_amd64.tar.gz
+    - on arm64: 
+        https://github.com/caddyserver/caddy/releases/download/v1.0.4/caddy_v1.0.4_linux_arm64.tar.gz
     stage:
     - ./*
     - -README.txt
@@ -95,8 +97,10 @@ parts:
       caddy: bin/caddy2
     plugin: dump
     source:
-    - on amd64: https://github.com/caddyserver/caddy/releases/download/v2.4.3/caddy_2.4.3_linux_amd64.tar.gz
-    - on arm64: https://github.com/caddyserver/caddy/releases/download/v2.4.3/caddy_2.4.3_linux_arm64.tar.gz
+    - on amd64: 
+        https://github.com/caddyserver/caddy/releases/download/v2.4.3/caddy_2.4.3_linux_amd64.tar.gz
+    - on arm64: 
+        https://github.com/caddyserver/caddy/releases/download/v2.4.3/caddy_2.4.3_linux_arm64.tar.gz
     stage:
     - ./*
     - -README.md
@@ -116,7 +120,8 @@ parts:
       deno: bin/deno
     plugin: dump
     source:
-    - on amd64: https://github.com/denoland/deno/releases/download/v1.37.1/deno-x86_64-unknown-linux-gnu.zip
+    - on amd64: 
+        https://github.com/denoland/deno/releases/download/v1.37.1/deno-x86_64-unknown-linux-gnu.zip
     source-type: zip
   helper-dependencies:
     plugin: nil
@@ -134,19 +139,23 @@ parts:
     source: ./migrations
   mongodb-libssl-backwards-compat:
     plugin: dump
-    source: https://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.24_amd64.deb
-    source-checksum: sha256/7cf39d70a639017d1dd7c8d36daa2258063608688e449fddf40ffdd46f992a78
+    source: 
+      https://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.24_amd64.deb
+    source-checksum: 
+      sha256/7cf39d70a639017d1dd7c8d36daa2258063608688e449fddf40ffdd46f992a78
     source-type: deb
   mongodb-tools:
     plugin: dump
     source:
-    - on amd64: https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2004-x86_64-100.10.0.tgz
+    - on amd64: 
+        https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2004-x86_64-100.10.0.tgz
     stage:
     - bin/mongodump
     - bin/mongorestore
   mongosh:
     plugin: dump
-    source: https://downloads.mongodb.com/compass/mongodb-mongosh_2.3.3_amd64.deb
+    source: 
+      https://downloads.mongodb.com/compass/mongodb-mongosh_2.3.3_amd64.deb
     source-type: deb
   rocketchat:
     after:
@@ -185,9 +194,11 @@ parts:
       pip install -r requirements.txt
 
 
-      # ./rocketcraft parts prime --parts-file /root/parts/rocketcraft/build/parts-*.yaml --work-dir /root/parts/rocketcraft/build/work --cache-dir /root/parts/rocketcraft/build/cache
+      # ./rocketcraft parts prime --parts-file /root/parts/rocketcraft/build/parts-*.yaml
+      --work-dir /root/parts/rocketcraft/build/work --cache-dir /root/parts/rocketcraft/build/cache
 
-      ./rocketcraft parts prime --parts-file $CRAFT_PART_BUILD/parts-$SNAPCRAFT_PROJECT_VERSION.yaml --work-dir $CRAFT_PART_BUILD/work --cache-dir $CRAFT_PART_BUILD/cache
+      ./rocketcraft parts prime --parts-file $CRAFT_PART_BUILD/parts-$SNAPCRAFT_PROJECT_VERSION.yaml
+      --work-dir $CRAFT_PART_BUILD/work --cache-dir $CRAFT_PART_BUILD/cache
 
 
       cp -rp $CRAFT_PART_BUILD/work/prime/* $CRAFT_PART_INSTALL/
@@ -200,8 +211,10 @@ parts:
       yq_linux_*: bin/yq
     plugin: dump
     source:
-    - on amd64: https://github.com/mikefarah/yq/releases/download/v4.16.1/yq_linux_amd64.tar.gz
-    - on arm64: https://github.com/mikefarah/yq/releases/download/v4.16.1/yq_linux_arm64.tar.gz
+    - on amd64: 
+        https://github.com/mikefarah/yq/releases/download/v4.16.1/yq_linux_amd64.tar.gz
+    - on arm64: 
+        https://github.com/mikefarah/yq/releases/download/v4.16.1/yq_linux_arm64.tar.gz
     stage:
     - bin
 summary: An Open Source Slack Alternative
