@@ -17,8 +17,8 @@ setParameter:
 
 storage:
   dbPath: $SNAP_COMMON
-  journal:
-    enabled: true
+#   journal:
+#     enabled: true
 
 systemLog:
   destination: syslog
