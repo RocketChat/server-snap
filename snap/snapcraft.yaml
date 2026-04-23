@@ -137,6 +137,9 @@ parts:
       '*': migrations/
     plugin: dump
     source: ./migrations
+    stage-packages:
+      - python3-ruamel.yaml
+      - python3
   mongodb-libssl-backwards-compat:
     plugin: dump
     source: 
