@@ -45,7 +45,7 @@ class NovmPlugin(Plugin):
         return [
             "./node --version",
             # MUST NOT USE --dereference
-            f"cp -rp versions/v{options.novm_node_version}/linux/x64/* $CRAFT_PART_INSTALL"
+            f"cp -a versions/v{options.novm_node_version}/linux/x64/* $CRAFT_PART_INSTALL"
         ]
 
     @override

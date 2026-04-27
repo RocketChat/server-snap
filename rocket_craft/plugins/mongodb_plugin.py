@@ -29,6 +29,8 @@ def get_all_dependencies(filename: Path, *, include_installed=True) -> set[str]:
     however since snapcraft may install other packages on top of base, not possible easily to know what base will have preinstalled at runtime;
     FIXME: ^
     """
+    reject_list = {"libpam-modules-bin", "passwd", "adduser", "libpam-modules", "debconf"}
+
     _import_apt()
 
     from apt.cache import Cache
@@ -74,7 +76,8 @@ def get_all_dependencies(filename: Path, *, include_installed=True) -> set[str]:
                     initial_dependencies.add(package.shortname)
             continue
 
-        final_dependencies.add(package.shortname)
+        if package.shortname not in reject_list:
+            final_dependencies.add(package.shortname)
 
         for dependencies in package.candidate.dependencies:
             for dep in dependencies:

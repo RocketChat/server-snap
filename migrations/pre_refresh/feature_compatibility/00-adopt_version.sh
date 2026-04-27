@@ -3,6 +3,21 @@
 source $SNAP/helpers/mongo.sh
 
 start() {
-    local v
-    { is_mongod_running || start_mongod; } && is_mongod_ready && v=$(mongod_fcv) && is_mongod_primary && { is_feature_compatibility $v || set_feature_compatibility $v; } && stop_mongod
+	if !is_mongod_running; then
+		start_mongod
+	fi
+	is_mongod_ready
+	is_mongod_primary
+	local v="$(mongod_fcv)"
+	echo "Expected FCV: $fcv"
+	if is_feature_compatibility "$v"; then
+		echo "Expected FCV matches current FCV"
+		return
+	fi
+	if set_feature_compatibility "$v"; then
+		echo "FCV set to $v"
+	else
+		echo "Failed to set FCV to $v"
+		exit 1
+	fi
 }

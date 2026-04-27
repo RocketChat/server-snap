@@ -1,8 +1,8 @@
 parts:
   mongodb:
     plugin: mongodb
-    mongodb-version: {{ mongodb_version }}
+    mongodb-version: 8.0.20
     mongodb-distro-override: ubuntu2404
   node:
     plugin: novm
-    novm-node-version: {{ novm_node_version }}
+    novm-node-version: 22.16.0

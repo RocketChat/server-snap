@@ -17,6 +17,12 @@ apps:
       LC_ALL: C
     plugs:
     - network
+  mongo-server-version:
+    command: bin/mongo-server-version.sh
+    environment:
+      LC_ALL: C
+    plugs:
+    - network
   restoredb:
     command: bin/restoredb.sh
     environment:
@@ -57,12 +63,12 @@ apps:
     - network-bind
     - removable-media
     stop-command: bin/stop_rocketchat.sh
-base: core22
+base: core24
 confinement: strict
 description: 'Have your own Slack like online chat, built with Meteor. https://rocket.chat/
 
   '
-epoch: 11*
+epoch: 12*
 grade: stable
 hooks:
   configure:
@@ -82,9 +88,9 @@ parts:
       caddy: bin/caddy1
     plugin: dump
     source:
-    - on amd64: 
+    - on amd64:
         https://github.com/caddyserver/caddy/releases/download/v1.0.4/caddy_v1.0.4_linux_amd64.tar.gz
-    - on arm64: 
+    - on arm64:
         https://github.com/caddyserver/caddy/releases/download/v1.0.4/caddy_v1.0.4_linux_arm64.tar.gz
     stage:
     - ./*
@@ -97,9 +103,9 @@ parts:
       caddy: bin/caddy2
     plugin: dump
     source:
-    - on amd64: 
+    - on amd64:
         https://github.com/caddyserver/caddy/releases/download/v2.4.3/caddy_2.4.3_linux_amd64.tar.gz
-    - on arm64: 
+    - on arm64:
         https://github.com/caddyserver/caddy/releases/download/v2.4.3/caddy_2.4.3_linux_arm64.tar.gz
     stage:
     - ./*
@@ -120,7 +126,7 @@ parts:
       deno: bin/deno
     plugin: dump
     source:
-    - on amd64: 
+    - on amd64:
         https://github.com/denoland/deno/releases/download/v1.37.1/deno-x86_64-unknown-linux-gnu.zip
     source-type: zip
   helper-dependencies:
@@ -134,30 +140,31 @@ parts:
     source: ./helpers/
   migrations:
     organize:
-      '*': migrations/
+      pre_refresh: migrations/pre_refresh
+      post_refresh: migrations/post_refresh
     plugin: dump
     source: ./migrations
     stage-packages:
-      - python3-ruamel.yaml
-      - python3
-  mongodb-libssl-backwards-compat:
-    plugin: dump
-    source: 
-      https://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.24_amd64.deb
-    source-checksum: 
-      sha256/7cf39d70a639017d1dd7c8d36daa2258063608688e449fddf40ffdd46f992a78
-    source-type: deb
+    - python3-ruamel.yaml
+    - python3
+  # mongodb-libssl-backwards-compat:
+  #   plugin: dump
+  #   source:
+  #     https://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.24_amd64.deb
+  #   source-checksum:
+  #     sha256/7cf39d70a639017d1dd7c8d36daa2258063608688e449fddf40ffdd46f992a78
+  #   source-type: deb
   mongodb-tools:
     plugin: dump
     source:
-    - on amd64: 
+    - on amd64:
         https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2004-x86_64-100.10.0.tgz
     stage:
     - bin/mongodump
     - bin/mongorestore
   mongosh:
     plugin: dump
-    source: 
+    source:
       https://downloads.mongodb.com/compass/mongodb-mongosh_2.3.3_amd64.deb
     source-type: deb
   rocketchat:
@@ -167,7 +174,7 @@ parts:
     - build-essential
     override-build: '(cd programs/server; npm i --omit=dev --unsafe-perm)
 
-      snapcraftctl build
+      craftctl default
 
       '
     plugin: dump
@@ -204,22 +211,25 @@ parts:
       --work-dir $CRAFT_PART_BUILD/work --cache-dir $CRAFT_PART_BUILD/cache
 
 
-      cp -rp $CRAFT_PART_BUILD/work/prime/* $CRAFT_PART_INSTALL/
+      cp -a $CRAFT_PART_BUILD/work/prime/* $CRAFT_PART_INSTALL/
 
       '
     plugin: dump
     source: ./rocket_craft
+    stage:
+      - '*'
+      - -usr/share/zoneinfo/localtime # not wasting time on this symlink problem FIXME:
   yq:
     organize:
       yq_linux_*: bin/yq
     plugin: dump
     source:
-    - on amd64: 
+    - on amd64:
         https://github.com/mikefarah/yq/releases/download/v4.16.1/yq_linux_amd64.tar.gz
-    - on arm64: 
+    - on arm64:
         https://github.com/mikefarah/yq/releases/download/v4.16.1/yq_linux_arm64.tar.gz
     stage:
     - bin
 summary: An Open Source Slack Alternative
 title: Rocket.Chat Server
-version: 7.13.5
+version: 8.3.2
