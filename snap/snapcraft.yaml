@@ -88,9 +88,9 @@ parts:
       caddy: bin/caddy1
     plugin: dump
     source:
-    - on amd64:
+    - on amd64: 
         https://github.com/caddyserver/caddy/releases/download/v1.0.4/caddy_v1.0.4_linux_amd64.tar.gz
-    - on arm64:
+    - on arm64: 
         https://github.com/caddyserver/caddy/releases/download/v1.0.4/caddy_v1.0.4_linux_arm64.tar.gz
     stage:
     - ./*
@@ -103,9 +103,9 @@ parts:
       caddy: bin/caddy2
     plugin: dump
     source:
-    - on amd64:
+    - on amd64: 
         https://github.com/caddyserver/caddy/releases/download/v2.4.3/caddy_2.4.3_linux_amd64.tar.gz
-    - on arm64:
+    - on arm64: 
         https://github.com/caddyserver/caddy/releases/download/v2.4.3/caddy_2.4.3_linux_arm64.tar.gz
     stage:
     - ./*
@@ -126,7 +126,7 @@ parts:
       deno: bin/deno
     plugin: dump
     source:
-    - on amd64:
+    - on amd64: 
         https://github.com/denoland/deno/releases/download/v1.37.1/deno-x86_64-unknown-linux-gnu.zip
     source-type: zip
   helper-dependencies:
@@ -157,14 +157,14 @@ parts:
   mongodb-tools:
     plugin: dump
     source:
-    - on amd64:
+    - on amd64: 
         https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2004-x86_64-100.10.0.tgz
     stage:
     - bin/mongodump
     - bin/mongorestore
   mongosh:
     plugin: dump
-    source:
+    source: 
       https://downloads.mongodb.com/compass/mongodb-mongosh_2.3.3_amd64.deb
     source-type: deb
   rocketchat:
@@ -217,19 +217,19 @@ parts:
     plugin: dump
     source: ./rocket_craft
     stage:
-      - '*'
-      - -usr/share/zoneinfo/localtime # not wasting time on this symlink problem FIXME:
+    - '*'
+    - -usr/share/zoneinfo/localtime   # not wasting time on this symlink problem FIXME:
   yq:
     organize:
       yq_linux_*: bin/yq
     plugin: dump
     source:
-    - on amd64:
+    - on amd64: 
         https://github.com/mikefarah/yq/releases/download/v4.16.1/yq_linux_amd64.tar.gz
-    - on arm64:
+    - on arm64: 
         https://github.com/mikefarah/yq/releases/download/v4.16.1/yq_linux_arm64.tar.gz
     stage:
     - bin
 summary: An Open Source Slack Alternative
 title: Rocket.Chat Server
-version: 8.3.2
+version: 8.5.1
